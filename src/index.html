@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互动影游流程图编辑器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --toolbar-bg: #1e1e1e;
+            --toolbar-border: #333;
+            --node-bg: #2d2d2d;
+            --node-border: #555;
+            --node-header: #383838;
+            --node-title: #fff;
+            --textarea-bg: #1e1e1e;
+            --textarea-border: #444;
+            --textarea-text: #ccc;
+            --btn-bg: #333;
+            --btn-text: #aaa;
+            --dot-color: rgba(255, 255, 255, 0.15);
+            --status-bg: #1e1e1e;
+            --canvas-bg: #0a0a0a;
+        }
+
+        body.light-mode {
+            --bg-color: #f3f4f6;
+            --text-color: #1f2937;
+            --toolbar-bg: #ffffff;
+            --toolbar-border: #e5e7eb;
+            --node-bg: #ffffff;
+            --node-border: #d1d5db;
+            --node-header: #f9fafb;
+            --node-title: #1f2937;
+            --textarea-bg: #ffffff;
+            --textarea-border: #e5e7eb;
+            --textarea-text: #374151;
+            --btn-bg: #f3f4f6;
+            --btn-text: #4b5563;
+            --dot-color: rgba(0, 0, 0, 0.15);
+            --status-bg: #ffffff;
+            --canvas-bg: #f3f4f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.scissors-mode, body.scissors-mode * { cursor: crosshair !important; }
+
+        #toolbar {
+            height: 50px; background-color: var(--toolbar-bg); border-bottom: 1px solid var(--toolbar-border);
+            display: flex; align-items: center; padding: 0 20px; gap: 15px; z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        button {
+            background-color: #2563eb; color: white; border: none; padding: 8px 16px;
+            border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;
+            transition: background-color 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        button:hover { background-color: #1d4ed8; }
+        .btn-secondary { background-color: #374151; }
+        .btn-secondary:hover { background-color: #4b5563; }
+        .toolbar-right { margin-left: auto; display: flex; gap: 15px; }
+
+        #color-palette {
+            position: absolute; top: 110%; left: 0; background: var(--node-bg);
+            border: 1px solid var(--node-border); border-radius: 6px; padding: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: none; flex-direction: column; gap: 10px; z-index: 200; width: 220px;
+        }
+        #color-palette.show { display: flex; }
+        .swatches { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+        .swatch { width: 22px; height: 22px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s, border-color 0.1s; }
+        .swatch:hover { transform: scale(1.15); border-color: #fff; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .custom-color-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; border-top: 1px solid var(--node-border); padding-top: 8px; color: var(--text-color); }
+        #custom-color-input { width: 26px; height: 26px; padding: 0; border: none; border-radius: 4px; cursor: pointer; background: none; }
+
+        #workspace-container {
+            flex-grow: 1; position: relative; overflow: hidden;
+            background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px);
+            background-size: 30px 30px; transition: background-image 0.3s;
+        }
+        #workspace { position: absolute; top: 0; left: 0; width: 0; height: 0; transform-origin: 0 0; }
+        #svg-canvas { position: absolute; top: -50000px; left: -50000px; width: 100000px; height: 100000px; overflow: visible; pointer-events: none; z-index: 0; }
+
+        .connection-line { fill: none; stroke: #3b82f6; stroke-width: 2; transition: stroke 0.2s, stroke-width 0.2s; pointer-events: none; }
+        .connection-line.selected-line { stroke: #ef4444; stroke-width: 4; }
+        .connection-hitbox { fill: none; stroke: transparent; stroke-width: 25; cursor: pointer; pointer-events: stroke; }
+        .cut-path { fill: none; stroke: #ef4444; stroke-width: 3; stroke-dasharray: 6, 6; pointer-events: none; z-index: 1000; }
+
+        #nodes-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+
+        .node {
+            position: absolute; background-color: var(--node-bg); border: 2px solid var(--node-border); border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column;
+            min-width: 220px; min-height: 160px; transition: border-color 0.2s, background-color 0.3s; pointer-events: auto;
+        }
+        .node.selected { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5), 0 6px 16px rgba(0,0,0,0.2); }
+        .node.drop-target { border-color: #4ade80; box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.5); }
+
+        .node-header { background-color: var(--node-header); padding: 8px 12px; border-top-left-radius: 6px; border-top-right-radius: 6px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--node-border); pointer-events: none; transition: background-color 0.3s, border-color 0.3s; }
+        .node-title { font-weight: 600; font-size: 14px; color: var(--node-title); border: none; background: transparent; outline: none; width: 100%; pointer-events: auto; cursor: text; transition: color 0.3s; }
+        .node-header-actions { display: flex; align-items: center; gap: 4px; pointer-events: auto; }
+        .node-delete-btn { color: #ef4444; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; padding: 4px; border-radius: 4px; }
+        .node-delete-btn:hover { opacity: 1; background: rgba(239, 68, 68, 0.1); }
+
+        .node-content { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; gap: 8px; overflow: hidden; pointer-events: none; }
+        .node-content > * { pointer-events: auto; }
+
+        .node-textarea {
+            width: 100%; flex: 1 1 auto; min-height: 40px; background: var(--textarea-bg); border: 1px solid var(--textarea-border);
+            color: var(--textarea-text); border-radius: 4px; padding: 6px; resize: none; outline: none; font-family: inherit;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
+        .node-textarea:focus { border-color: #3b82f6; }
+
+        .node-media-controls { display: flex; gap: 4px; }
+        .node-btn {
+            flex: 1; background: var(--btn-bg); color: var(--btn-text); border: 1px solid var(--node-border); padding: 4px 0;
+            border-radius: 4px; font-size: 11px; cursor: pointer; transition: all 0.2s; text-align: center;
+        }
+        .node-btn:hover { filter: brightness(1.2); color: #3b82f6; border-color: #3b82f6; }
+
+        .media-gallery { width: 100%; background: var(--textarea-bg); border: 1px solid var(--node-border); border-radius: 4px; display: none; flex-direction: column; position: relative; }
+        .media-gallery.has-content { display: flex; }
+        
+        .image-canvas-container {
+            width: 100%; position: relative; overflow: hidden; background: var(--canvas-bg); border-bottom: 1px solid var(--node-border); min-height: 40px;
+            isolation: isolate; transition: background-color 0.3s; cursor: default;
+        }
+        .image-canvas-container.drag-over-canvas { border: 2px dashed #4ade80; background-color: rgba(74, 222, 128, 0.1); }
+        
+        .image-canvas-resizer { width: 100%; height: 8px; background: var(--node-header); cursor: ns-resize; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid var(--node-border);}
+        .image-canvas-resizer::after { content: ''; width: 30px; height: 2px; background: var(--node-border); border-radius: 1px; }
+        .image-canvas-resizer:hover { filter: brightness(0.9); }
+
+        /* 小画布内的框选框 */
+        .canvas-selection-box {
+            position: absolute; border: 1px dashed #4ade80; background-color: rgba(74, 222, 128, 0.2); 
+            display: none; z-index: 50; pointer-events: none;
+        }
+
+        /* 图片控制框专属样式 - 完美区分区域 */
+        .mini-img-wrapper { position: absolute; display: inline-block; cursor: grab; transform-origin: center center; }
+        .mini-img-wrapper:active { cursor: grabbing; }
+        .mini-img-wrapper img { width: 100%; height: 100%; object-fit: contain; pointer-events: auto; }
+        
+        .mini-img-wrapper .mh-resize, .mini-img-wrapper .mh-rotate-handle { display: none; }
+        .mini-img-wrapper.active-img { outline: 2px solid #3b82f6; z-index: 100 !important; }
+        .mini-img-wrapper.active-img .mh-resize, .mini-img-wrapper.active-img .mh-rotate-handle { display: block; }
+        
+        /* 四角贴边缩放热区 */
+        .mini-img-wrapper .mh-resize { 
+            position: absolute; width: 12px; height: 12px; background: white; 
+            border: 1px solid #3b82f6; border-radius: 50%; z-index: 20; pointer-events: auto;
+        }
+        .mh-resize.mh-tl { top: -6px; left: -6px; cursor: nwse-resize; }
+        .mh-resize.mh-tr { top: -6px; right: -6px; cursor: nesw-resize; }
+        .mh-resize.mh-bl { bottom: -6px; left: -6px; cursor: nesw-resize; }
+        .mh-resize.mh-br { bottom: -6px; right: -6px; cursor: nwse-resize; }
+        
+        /* 专属的定制旋转光标，悬空在4个角外侧，利用SVG展现完美对角双向弯曲箭头 */
+        .mini-img-wrapper .mh-rotate-handle { 
+            position: absolute; width: 22px; height: 22px; z-index: 15; pointer-events: auto; border-radius: 50%;
+            border: 1px dashed transparent; /* 悬浮引导区，不可见但可点击 */
+        }
+        
+        /* 左上角旋转：向下+向右弯曲 */
+        .mh-rotate-handle.mh-rot-tl { 
+            top: -20px; left: -20px; 
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke='black' stroke-width='4'%3E%3Cpath d='M15 6 A 9 9 0 0 0 6 15' /%3E%3Cpath d='M12 3 L15 6 L12 9' /%3E%3Cpath d='M3 12 L6 15 L9 12' /%3E%3C/g%3E%3Cg stroke='white' stroke-width='2'%3E%3Cpath d='M15 6 A 9 9 0 0 0 6 15' /%3E%3Cpath d='M12 3 L15 6 L12 9' /%3E%3Cpath d='M3 12 L6 15 L9 12' /%3E%3C/g%3E%3C/svg%3E") 12 12, crosshair; 
+        }
+        /* 右上角旋转：向下+向左弯曲 */
+        .mh-rotate-handle.mh-rot-tr { 
+            top: -20px; right: -20px; 
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke='black' stroke-width='4'%3E%3Cpath d='M9 6 A 9 9 0 0 1 18 15' /%3E%3Cpath d='M12 3 L9 6 L12 9' /%3E%3Cpath d='M15 12 L18 15 L21 12' /%3E%3C/g%3E%3Cg stroke='white' stroke-width='2'%3E%3Cpath d='M9 6 A 9 9 0 0 1 18 15' /%3E%3Cpath d='M12 3 L9 6 L12 9' /%3E%3Cpath d='M15 12 L18 15 L21 12' /%3E%3C/g%3E%3C/svg%3E") 12 12, crosshair; 
+        }
+        /* 左下角旋转：向上+向右弯曲 */
+        .mh-rotate-handle.mh-rot-bl { 
+            bottom: -20px; left: -20px; 
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke='black' stroke-width='4'%3E%3Cpath d='M6 9 A 9 9 0 0 0 15 18' /%3E%3Cpath d='M3 12 L6 9 L9 12' /%3E%3Cpath d='M12 15 L15 18 L12 21' /%3E%3C/g%3E%3Cg stroke='white' stroke-width='2'%3E%3Cpath d='M6 9 A 9 9 0 0 0 15 18' /%3E%3Cpath d='M3 12 L6 9 L9 12' /%3E%3Cpath d='M12 15 L15 18 L12 21' /%3E%3C/g%3E%3C/svg%3E") 12 12, crosshair; 
+        }
+        /* 右下角旋转：向上+向左弯曲 */
+        .mh-rotate-handle.mh-rot-br { 
+            bottom: -20px; right: -20px; 
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke='black' stroke-width='4'%3E%3Cpath d='M18 9 A 9 9 0 0 1 9 18' /%3E%3Cpath d='M15 12 L18 9 L21 12' /%3E%3Cpath d='M12 15 L9 18 L12 21' /%3E%3C/g%3E%3Cg stroke='white' stroke-width='2'%3E%3Cpath d='M18 9 A 9 9 0 0 1 9 18' /%3E%3Cpath d='M15 12 L18 9 L21 12' /%3E%3Cpath d='M12 15 L9 18 L12 21' /%3E%3C/g%3E%3C/svg%3E") 12 12, crosshair; 
+        }
+
+        .canvas-tip { position: absolute; bottom: 4px; left: 4px; color: rgba(128,128,128,0.6); font-size: 10px; pointer-events: none; z-index: 0; }
+
+        /* 视频列表及其缩放条 */
+        .video-list-container { overflow-y: auto; padding: 4px; border-bottom: 1px solid var(--node-border); }
+        .media-video-item {
+            display: flex; align-items: center; justify-content: space-between; background: var(--node-header);
+            padding: 6px 8px; border-radius: 4px; margin-bottom: 4px; border: 1px solid var(--node-border); font-size: 12px; transition: background 0.2s; color: var(--text-color);
+        }
+        .media-video-item:hover { filter: brightness(1.1); }
+        .video-info { display: flex; align-items: center; flex-grow: 1; overflow: hidden; cursor: pointer; }
+        .video-name { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; color: #3b82f6; outline: none; padding: 2px 4px; border-radius: 2px; }
+        .video-name[contenteditable="true"] { background: var(--textarea-bg); border-bottom: 1px solid #3b82f6; cursor: text; }
+        .video-actions { display: flex; gap: 8px; align-items: center; padding-right: 5px; }
+        .v-btn { color: #888; cursor: pointer; padding: 4px; transition: all 0.2s; font-size: 13px; }
+        .v-btn:hover { color: #fff; }
+        .v-del:hover { color: #ef4444; }
+
+        /* 视频列表的缩放器 */
+        .video-list-resizer { width: 100%; height: 8px; background: var(--node-header); cursor: ns-resize; display: flex; justify-content: center; align-items: center; }
+        .video-list-resizer::after { content: ''; width: 30px; height: 2px; background: var(--node-border); border-radius: 1px; }
+        .video-list-resizer:hover { filter: brightness(0.9); }
+
+        .resize-handle { position: absolute; right: 0; bottom: 0; width: 15px; height: 15px; cursor: nwse-resize; pointer-events: auto; }
+        .resize-handle::after { content: ''; position: absolute; right: 4px; bottom: 4px; width: 0; height: 0; border-style: solid; border-width: 0 0 8px 8px; border-color: transparent transparent #888 transparent; }
+
+        #magnetic-port {
+            position: absolute; width: 28px; height: 28px; background: #3b82f6; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 14px; cursor: crosshair; z-index: 500; box-shadow: 0 0 10px rgba(59,130,246,0.8); transform: translate(-50%, -50%); pointer-events: auto;
+        }
+
+        #selection-box { position: absolute; border: 1px solid rgba(59, 130, 246, 0.8); background-color: rgba(59, 130, 246, 0.2); display: none; z-index: 100; pointer-events: none; }
+
+        /* 弹窗系统样式 */
+        #media-preview-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: none; justify-content: center; align-items: center; overflow: hidden; }
+        #media-preview-modal.show { display: flex; }
+        .preview-image-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; pointer-events: none; }
+        #preview-image { max-width: 90vw; max-height: 90vh; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: grab; display: none; transform-origin: center center; pointer-events: auto; }
+        #preview-image:active { cursor: grabbing; }
+        #preview-video { position: relative; z-index: 10; max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid #555; display: none; outline: none; pointer-events: auto; }
+        .preview-tip { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.6); font-size: 14px; pointer-events: none; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 20px; z-index: 20;}
+
+        /* 状态栏 */
+        #status-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 30px; background-color: var(--status-bg); border-top: 1px solid var(--toolbar-border);
+            display: flex; align-items: center; padding: 0 20px; color: var(--textarea-text); font-size: 12px; z-index: 100; transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+        #status-bar span { margin-right: 20px; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="toolbar">
+    <button id="add-node-btn"><i class="fas fa-plus"></i> 新增节点</button>
+    <div id="color-picker-wrapper" style="position: relative; display: flex; align-items: center;">
+        <button id="toolbar-color-btn" class="btn-secondary" title="设置选中节点颜色"><i class="fas fa-palette"></i> 节点颜色</button>
+        <div id="color-palette">
+            <div class="swatches" id="swatches-container"></div>
+            <div class="custom-color-row">
+                <label for="custom-color-input">自定义:</label>
+                <input type="color" id="custom-color-input" value="#383838" title="选择任意颜色">
+            </div>
+        </div>
+    </div>
+    <button id="save-btn" class="btn-secondary"><i class="fas fa-save"></i> 导出保存</button>
+    <button id="load-btn" class="btn-secondary" onclick="document.getElementById('file-input').click()"><i class="fas fa-folder-open"></i> 导入文件</button>
+    <input type="file" id="file-input" style="display: none;" accept=".json">
+
+    <div class="toolbar-right">
+        <button id="theme-toggle-btn" class="btn-secondary"><i class="fas fa-sun"></i> 浅色模式</button>
+    </div>
+</div>
+
+<div id="workspace-container">
+    <div id="workspace">
+        <svg id="svg-canvas" viewBox="-50000 -50000 100000 100000"></svg>
+        <div id="nodes-container"></div>
+        <div id="magnetic-port" draggable="false"><i class="fas fa-plus" draggable="false"></i></div>
+    </div>
+    <div id="selection-box"></div>
+</div>
+
+<div id="status-bar">
+    <span id="sb-default"><i class="fas fa-mouse"></i> 左键: 框选/拖拽</span>
+    <span id="sb-scissors" style="display:none; color:#ef4444;"><b><i class="fas fa-cut"></i> 剪刀模式: 左键划线切断连线 (松开退出)</b></span>
+    <span><i class="fas fa-mouse-pointer"></i> 中键: 平移画布</span>
+    <span><i class="fas fa-search"></i> 滚轮: 缩放画布</span>
+    <span><i class="fas fa-cut"></i> <b>单击右键:</b> 开启剪刀模式</span>
+</div>
+
+<div id="media-preview-modal">
+    <div class="preview-tip" id="preview-image-tip">滚轮缩放 | 按住拖拽平移 | 双击背景退出</div>
+    <div class="preview-tip" id="preview-video-tip" style="display:none;">双击背景退出</div>
+    <div class="preview-image-container"><img id="preview-image" src="" alt="预览" draggable="false"></div>
+    <video id="preview-video" controls></video>
+</div>
+
+<input type="file" id="image-upload-input" style="display: none;" accept="image/*" multiple>
+<input type="file" id="video-upload-input" style="display: none;" accept="video/*">
+<input type="file" id="relink-video-input" style="display: none;" accept="video/*">
+
+<script>
+    // --- 30个预设主题颜色 ---
+    const nodeThemes = [
+        { id: 0, bg: 'var(--node-bg)', header: 'var(--node-header)', border: 'var(--node-border)' },
+        { id: 1, bg: '#1f2937', header: '#111827', border: '#374151' }, 
+        { id: 2, bg: '#7f1d1d', header: '#991b1b', border: '#b91c1c' }, 
+        { id: 3, bg: '#7c2d12', header: '#9a3412', border: '#c2410c' }, 
+        { id: 4, bg: '#713f12', header: '#854d0e', border: '#a16207' }, 
+        { id: 5, bg: '#3f6212', header: '#4d7c0f', border: '#65a30d' }, 
+        { id: 6, bg: '#14532d', header: '#166534', border: '#15803d' }, 
+        { id: 7, bg: '#064e3b', header: '#065f46', border: '#059669' }, 
+        { id: 8, bg: '#164e63', header: '#0f766e', border: '#0d9488' }, 
+        { id: 9, bg: '#0c4a6e', header: '#0369a1', border: '#0284c7' }, 
+        { id: 10, bg: '#1e3a8a', header: '#1e40af', border: '#2563eb' }, 
+        { id: 11, bg: '#312e81', header: '#3730a3', border: '#4f46e5' }, 
+        { id: 12, bg: '#4c1d95', header: '#5b21b6', border: '#6d28d9' }, 
+        { id: 13, bg: '#701a75', header: '#86198f', border: '#a21caf' }, 
+        { id: 14, bg: '#831843', header: '#9d174d', border: '#be185d' }, 
+        { id: 15, bg: '#475569', header: '#374151', border: '#64748b' }, 
+        { id: 16, bg: '#ef4444', header: '#dc2626', border: '#f87171' }, 
+        { id: 17, bg: '#f97316', header: '#ea580c', border: '#fb923c' }, 
+        { id: 18, bg: '#eab308', header: '#ca8a04', border: '#facc15' }, 
+        { id: 19, bg: '#84cc16', header: '#65a30d', border: '#a3e635' }, 
+        { id: 20, bg: '#22c55e', header: '#16a34a', border: '#4ade80' }, 
+        { id: 21, bg: '#10b981', header: '#059669', border: '#34d399' }, 
+        { id: 22, bg: '#06b6d4', header: '#0891b2', border: '#22d3ee' }, 
+        { id: 23, bg: '#0ea5e9', header: '#0284c7', border: '#38bdf8' }, 
+        { id: 24, bg: '#3b82f6', header: '#2563eb', border: '#60a5fa' }, 
+        { id: 25, bg: '#6366f1', header: '#4f46e5', border: '#818cf8' }, 
+        { id: 26, bg: '#8b5cf6', header: '#7c3aed', border: '#a78bfa' }, 
+        { id: 27, bg: '#d946ef', header: '#c026d3', border: '#e879f9' }, 
+        { id: 28, bg: '#f43f5e', header: '#e11d48', border: '#fb7185' }, 
+        { id: 29, bg: '#000000', header: '#111111', border: '#333333' }  
+    ];
+
+    const swatchesContainer = document.getElementById('swatches-container');
+    nodeThemes.forEach((theme, index) => {
+        const div = document.createElement('div');
+        div.className = 'swatch';
+        div.style.backgroundColor = theme.bg.startsWith('var') ? '#888' : theme.header;
+        if(index === 0) div.title = "跟随全局主题";
+        div.dataset.theme = index;
+        swatchesContainer.appendChild(div);
+    });
+
+    let nodes = {}; 
+    let connections = []; 
+    let scale = 1, panX = 0, panY = 0;
+    
+    let isDraggingNode = false, isPanning = false, isSelecting = false, isConnecting = false;
+    let isResizingCanvas = false, isResizingVidList = false;
+    let isScissorsMode = false, isCutting = false, cutPath = [];
+
+    // --- 小画布多选与变形状态管理 ---
+    let activeCanvasNodeId = null;
+    let selectedMiniImgs = new Set(); // 存储被选中的图片 ID
+    let isCanvasSelecting = false;
+    let canvasSelectionStartX = 0, canvasSelectionStartY = 0;
+    
+    let isDraggingMiniImg = false, isResizingMiniImg = false, isRotatingMiniImg = false;
+    let miniImgStartData = {}; 
+    let activeResizeDir = ''; // tl, tr, bl, br
+    let miniImgStartX = 0, miniImgStartY = 0;
+    let startMouseAngle = 0, rotateCenterScreenX = 0, rotateCenterScreenY = 0;
+
+    let startPanX = 0, startPanY = 0, dragStartMouseX = 0, dragStartMouseY = 0;
+    let selectionStartX = 0, selectionStartY = 0;
+    let draggedNodesInitialPositions = {};
+    let connectStartNodeId = null, tempLineEnd = {x:0, y:0};
+    let resizeCanvasNodeId = null, resizeCanvasStartY = 0, resizeCanvasStartH = 0;
+    let resizeVidListNodeId = null, resizeVidListStartY = 0, resizeVidListStartH = 0;
+
+    let selectedNodes = new Set();
+    let selectedLineIndices = new Set(); 
+    let previewImgScale = 1, previewImgPanX = 0, previewImgPanY = 0;
+    let isDraggingPreview = false, previewDragStartX = 0, previewDragStartY = 0, previewStartPanX = 0, previewStartPanY = 0;
+    let isLightMode = false;
+
+    const workspaceContainer = document.getElementById('workspace-container');
+    const workspace = document.getElementById('workspace');
+    const svg = document.getElementById('svg-canvas');
+    const nodesContainer = document.getElementById('nodes-container');
+    const selectionBox = document.getElementById('selection-box');
+    const magneticPort = document.getElementById('magnetic-port');
+    const generateId = () => 'id_' + Math.random().toString(36).substr(2, 9);
+    
+    function setGlobalSelect(disable) {
+        if (disable) { document.body.style.userSelect = 'none'; document.body.style.webkitUserSelect = 'none'; window.getSelection().removeAllRanges(); } 
+        else { document.body.style.userSelect = ''; document.body.style.webkitUserSelect = ''; }
+    }
+    
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('drop', (e) => e.preventDefault());
+
+    function screenToWorkspace(clientX, clientY) {
+        const rect = workspaceContainer.getBoundingClientRect();
+        return { x: (clientX - rect.left - panX) / scale, y: (clientY - rect.top - panY) / scale };
+    }
+
+    function updateWorkspaceTransform() {
+        workspace.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+        workspaceContainer.style.backgroundPosition = `${panX}px ${panY}px`;
+        workspaceContainer.style.backgroundSize = `${30 * scale}px ${30 * scale}px`;
+    }
+
+    document.getElementById('theme-toggle-btn').addEventListener('click', (e) => {
+        isLightMode = !isLightMode;
+        document.body.classList.toggle('light-mode', isLightMode);
+        const btn = e.currentTarget;
+        if (isLightMode) { btn.innerHTML = '<i class="fas fa-moon"></i> 深色模式'; btn.style.backgroundColor = '#374151'; } 
+        else { btn.innerHTML = '<i class="fas fa-sun"></i> 浅色模式'; btn.style.backgroundColor = ''; }
+        Object.keys(nodes).forEach(id => applyNodeColor(id, nodes[id].themeId, nodes[id].customColor));
+    });
+
+    function drawAllLines() {
+        let svgContent = '';
+        connections.forEach((conn, index) => {
+            if (!nodes[conn.from] || !nodes[conn.to]) return;
+            const start = getPortPos(conn.from, 'out'), end = getPortPos(conn.to, 'in');
+            const pathData = generateBezierPath(start, end);
+            const isSelectedClass = selectedLineIndices.has(index) ? 'selected-line' : '';
+            svgContent += `<path class="connection-hitbox" d="${pathData}" data-idx="${index}"></path><path class="connection-line ${isSelectedClass}" d="${pathData}" data-idx="${index}"></path>`;
+        });
+        if (isConnecting && connectStartNodeId) {
+            const start = getPortPos(connectStartNodeId, 'out');
+            if(start.x || start.y) svgContent += `<path class="connection-line" d="${generateBezierPath(start, tempLineEnd)}" style="stroke: #3b82f6; stroke-dasharray: 5,5;"></path>`;
+        }
+        svg.innerHTML = svgContent; bindLineEvents(); drawCutPath(); 
+    }
+
+    function generateBezierPath(start, end) {
+        const dx = Math.abs(end.x - start.x);
+        const controlOffset = Math.max(dx * 0.5, 50);
+        return `M ${start.x} ${start.y} C ${start.x + controlOffset} ${start.y}, ${end.x - controlOffset} ${end.y}, ${end.x} ${end.y}`;
+    }
+
+    function getPortPos(nodeId, type) {
+        const n = nodes[nodeId]; if (!n) return { x: 0, y: 0 };
+        return type === 'out' ? { x: n.x + n.w, y: n.y + n.h / 2 } : { x: n.x, y: n.y + n.h / 2 };
+    }
+
+    function bindLineEvents() {
+        document.querySelectorAll('.connection-hitbox').forEach(hitbox => {
+            hitbox.addEventListener('click', (e) => {
+                if (isScissorsMode) return; e.stopPropagation();
+                const idx = parseInt(e.target.dataset.idx);
+                if (!e.shiftKey) selectedLineIndices.clear();
+                selectedLineIndices.add(idx); drawAllLines();
+            });
+        });
+    }
+
+    function drawCutPath() {
+        let pathEl = document.getElementById('cut-path-line');
+        if (!pathEl) {
+            pathEl = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+            pathEl.id = 'cut-path-line'; pathEl.setAttribute('class', 'cut-path'); svg.appendChild(pathEl);
+        }
+        if (cutPath.length === 0) pathEl.setAttribute('points', '');
+        else pathEl.setAttribute('points', cutPath.map(p => `${p.x},${p.y}`).join(' '));
+    }
+
+    function getBezierPoint(t, p0, p1, p2, p3) {
+        let mt = 1 - t, mt2 = mt * mt, t2 = t * t;
+        return { x: mt2 * mt * p0.x + 3 * mt2 * t * p1.x + 3 * mt * t2 * p2.x + t2 * t * p3.x, y: mt2 * mt * p0.y + 3 * mt2 * t * p1.y + 3 * mt * t2 * p2.y + t2 * t * p3.y };
+    }
+
+    function doSegmentsIntersect(p0, p1, p2, p3) {
+        let s1_x = p1.x - p0.x, s1_y = p1.y - p0.y, s2_x = p3.x - p2.x, s2_y = p3.y - p2.y;
+        let den = (-s2_x * s1_y + s1_x * s2_y); if (den === 0) return false;
+        let s = (-s1_y * (p0.x - p2.x) + s1_x * (p0.y - p2.y)) / den, t = ( s2_x * (p0.y - p2.y) - s2_y * (p0.x - p2.x)) / den;
+        return (s >= 0 && s <= 1 && t >= 0 && t <= 1);
+    }
+
+    function renderNodeMedia(nodeId) {
+        const n = nodes[nodeId]; const nodeEl = document.getElementById(nodeId); if (!nodeEl) return;
+        const gallery = nodeEl.querySelector('.media-gallery'); gallery.innerHTML = '';
+        let hasContent = false;
+
+        if (n.images && n.images.length > 0) {
+            hasContent = true;
+            let html = `<div class="image-canvas-container" style="height: ${n.imgCanvasHeight || 120}px"><div class="canvas-tip">点击/框选图片 (Shift多选/Del删除) | 拖拽四角缩放 | 悬停外侧旋转</div>`;
+            n.images.forEach(img => {
+                const isSelected = selectedMiniImgs.has(img.id);
+                html += `
+                <div class="mini-img-wrapper ${isSelected ? 'active-img' : ''}" data-id="${img.id}" style="transform: translate(${img.x}px, ${img.y}px) rotate(${img.rot || 0}deg); z-index: ${img.z || 0}; width: ${img.w}px; height: ${img.h}px;">
+                    <div class="mh-rotate-handle mh-rot-tl"></div><div class="mh-rotate-handle mh-rot-tr"></div>
+                    <div class="mh-rotate-handle mh-rot-bl"></div><div class="mh-rotate-handle mh-rot-br"></div>
+                    <img src="${img.src}" style="width: 100%; height: 100%; object-fit: contain; pointer-events: auto;" draggable="false">
+                    <div class="mh-resize mh-tl" data-dir="tl"></div><div class="mh-resize mh-tr" data-dir="tr"></div>
+                    <div class="mh-resize mh-bl" data-dir="bl"></div><div class="mh-resize mh-br" data-dir="br"></div>
+                </div>`;
+            });
+            // 小画布内置专用的框选盒子
+            html += `<div class="canvas-selection-box" id="c-box-${nodeId}"></div></div><div class="image-canvas-resizer" title="上下拖动调整高度"></div>`;
+            gallery.insertAdjacentHTML('beforeend', html);
+        }
+
+        if (n.videos && n.videos.length > 0) {
+            hasContent = true;
+            let html = `<div class="video-list-container" style="height: ${n.vidListHeight || 100}px;">`;
+            n.videos.forEach(vid => {
+                const isBroken = !vid.src.startsWith('blob:') && !vid.src.startsWith('http');
+                const nameColor = isBroken ? '#ef4444' : '#3b82f6';
+                const warningIcon = isBroken ? `<i class="fas fa-exclamation-triangle" style="color:#ef4444; margin-right:4px;" title="本地文件已断开"></i>` : '';
+                html += `
+                <div class="media-video-item" data-id="${vid.id}" data-src="${vid.src}">
+                    <div class="video-info" style="display: flex; align-items: center; flex-grow: 1; overflow: hidden; cursor: pointer;">
+                        <i class="fas fa-film" style="color:#64748b; margin-right:6px;"></i>
+                        ${warningIcon}
+                        <span class="video-name" style="color:${nameColor}">${vid.name}</span>
+                    </div>
+                    <div class="video-actions">
+                        <i class="fas fa-link v-btn" title="重新关联本地视频" onclick="event.stopPropagation(); window.triggerRelinkVid(this, '${nodeId}', '${vid.id}')"></i>
+                        <i class="fas fa-edit v-btn" title="重命名" onclick="event.stopPropagation(); window.startRenameVid(this, '${nodeId}', '${vid.id}')"></i>
+                        <i class="fas fa-times v-del v-btn" title="删除"></i>
+                    </div>
+                </div>`;
+            });
+            html += `</div><div class="video-list-resizer" title="上下拖动调整高度"></div>`;
+            gallery.insertAdjacentHTML('beforeend', html);
+        }
+
+        if (hasContent) gallery.classList.add('has-content'); else gallery.classList.remove('has-content');
+    }
+
+    function createNode(x, y, title = "新场景", content = "", width = 240, height = 200, id = null, themeId = 0, customColor = null, images = [], videos = [], imgCanvasHeight = 120, fontSize = 14, vidListHeight = 100) {
+        const nodeId = id || generateId();
+        nodes[nodeId] = { x, y, w: width, h: height, title, content, images: images||[], videos: videos||[], imgCanvasHeight, themeId, customColor, fontSize, vidListHeight };
+
+        const nodeEl = document.createElement('div'); nodeEl.className = 'node'; nodeEl.id = nodeId;
+        nodeEl.style.left = `${x}px`; nodeEl.style.top = `${y}px`; nodeEl.style.width = `${width}px`; nodeEl.style.height = `${height}px`;
+
+        nodeEl.innerHTML = `
+            <div class="node-header"><input class="node-title" value="${title}"><div class="node-header-actions"><div class="node-delete-btn"><i class="fas fa-times"></i></div></div></div>
+            <div class="node-content">
+                <div class="media-gallery"></div>
+                <textarea class="node-textarea" placeholder="在此输入分支剧情描述..." style="font-size: ${fontSize}px;">${content}</textarea>
+                <div class="node-media-controls">
+                    <div class="node-btn btn-add-img" title="插入图片"><i class="fas fa-image"></i></div>
+                    <div class="node-btn btn-add-vid" title="插入视频"><i class="fas fa-film"></i></div>
+                    <div class="node-btn btn-font-minus" title="缩小字体">A-</div>
+                    <div class="node-btn btn-font-plus" title="放大字体">A+</div>
+                </div>
+            </div>
+            <div class="resize-handle"></div>
+        `;
+        nodesContainer.appendChild(nodeEl);
+        applyNodeColor(nodeId, themeId, customColor); renderNodeMedia(nodeId); bindNodeEvents(nodeEl, nodeId); return nodeId;
+    }
+
+    function applyNodeColor(nodeId, themeId, customColor = null) {
+        if (!nodes[nodeId]) return; nodes[nodeId].themeId = themeId; nodes[nodeId].customColor = customColor;
+        const nodeEl = document.getElementById(nodeId); if (!nodeEl) return;
+        const headerEl = nodeEl.querySelector('.node-header');
+        
+        if (customColor) { nodeEl.style.backgroundColor = customColor; nodeEl.style.borderColor = customColor; if (headerEl) headerEl.style.backgroundColor = customColor; } 
+        else if (themeId !== 0) { const theme = nodeThemes[themeId]; nodeEl.style.backgroundColor = theme.bg; nodeEl.style.borderColor = theme.border; if (headerEl) headerEl.style.backgroundColor = theme.header; } 
+        else { nodeEl.style.backgroundColor = ''; nodeEl.style.borderColor = ''; if (headerEl) headerEl.style.backgroundColor = ''; }
+    }
+
+    window.startRenameVid = function(btn, nodeId, vidId) {
+        const item = btn.closest('.media-video-item'); const nameSpan = item.querySelector('.video-name');
+        nameSpan.contentEditable = true; nameSpan.focus();
+        const range = document.createRange(); range.selectNodeContents(nameSpan);
+        const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+        const finishEdit = () => {
+            nameSpan.contentEditable = false; const n = nodes[nodeId];
+            if (n) { const vid = n.videos.find(v => v.id === vidId); if (vid) { vid.name = nameSpan.textContent.trim() || "未命名"; nameSpan.textContent = vid.name; } }
+            nameSpan.removeEventListener('blur', finishEdit);
+        };
+        nameSpan.addEventListener('blur', finishEdit);
+        nameSpan.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); nameSpan.blur(); } };
+    };
+
+    window.triggerRelinkVid = function(btn, nodeId, vidId) {
+        window.relinkData = { nodeId, vidId };
+        document.getElementById('relink-video-input').click();
+    };
+
+    document.getElementById('relink-video-input').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && window.relinkData) {
+            const n = nodes[window.relinkData.nodeId];
+            if (n) {
+                const vid = n.videos.find(v => v.id === window.relinkData.vidId);
+                if (vid) { vid.src = URL.createObjectURL(file); renderNodeMedia(window.relinkData.nodeId); }
+            }
+        }
+        this.value = '';
+    });
+
+    function handleDroppedFiles(files, nodeId, isOverCanvas, mouseX, mouseY, canvasRect) {
+        const n = nodes[nodeId];
+        Array.from(files).forEach(file => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const tempImg = new Image();
+                    tempImg.onload = () => {
+                        let initW = tempImg.width, initH = tempImg.height;
+                        if (initW > 120) { initH = (120 / initW) * initH; initW = 120; }
+                        let localX = 10, localY = 10;
+                        if (isOverCanvas && canvasRect) {
+                            localX = (mouseX - canvasRect.left) / scale - (initW/2);
+                            localY = (mouseY - canvasRect.top) / scale - (initH/2);
+                        } else {
+                            localX = 10 + (n.images.length * 15) % 100;
+                            localY = 10 + (n.images.length * 15) % 100;
+                        }
+                        n.images.push({id: generateId(), src: e.target.result, x: Math.max(0,localX), y: Math.max(0,localY), w: initW, h: initH, rot: 0, z: n.images.length});
+                        renderNodeMedia(nodeId);
+                    };
+                    tempImg.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else if (file.type.startsWith('video/')) {
+                n.videos.push({id: generateId(), name: file.name, src: URL.createObjectURL(file)});
+                renderNodeMedia(nodeId);
+            }
+        });
+    }
+
+    function bindNodeEvents(nodeEl, nodeId) {
+        const titleEl = nodeEl.querySelector('.node-title'); const contentEl = nodeEl.querySelector('.node-textarea');
+        titleEl.addEventListener('input', () => { nodes[nodeId].title = titleEl.value; });
+        contentEl.addEventListener('input', () => { nodes[nodeId].content = contentEl.value; });
+        nodeEl.querySelector('.node-delete-btn').addEventListener('click', (e) => { e.stopPropagation(); selectedNodes.add(nodeId); deleteSelectedNodes(); });
+
+        nodeEl.querySelector('.btn-font-minus').addEventListener('click', (e) => { e.stopPropagation(); const n = nodes[nodeId]; n.fontSize = Math.max(10, (n.fontSize || 14) - 2); contentEl.style.fontSize = `${n.fontSize}px`; });
+        nodeEl.querySelector('.btn-font-plus').addEventListener('click', (e) => { e.stopPropagation(); const n = nodes[nodeId]; n.fontSize = Math.min(48, (n.fontSize || 14) + 2); contentEl.style.fontSize = `${n.fontSize}px`; });
+
+        nodeEl.querySelector('.resize-handle').addEventListener('mousedown', (e) => {
+            if (isScissorsMode) return; e.stopPropagation(); setGlobalSelect(true);
+            let startW = nodes[nodeId].w, startH = nodes[nodeId].h, startX = e.clientX, startY = e.clientY;
+            const doResize = (em) => {
+                nodes[nodeId].w = Math.max(200, startW + (em.clientX - startX) / scale); nodes[nodeId].h = Math.max(150, startH + (em.clientY - startY) / scale);
+                nodeEl.style.width = `${nodes[nodeId].w}px`; nodeEl.style.height = `${nodes[nodeId].h}px`; drawAllLines();
+            };
+            const stopResize = () => { setGlobalSelect(false); window.removeEventListener('mousemove', doResize); window.removeEventListener('mouseup', stopResize); };
+            window.addEventListener('mousemove', doResize); window.addEventListener('mouseup', stopResize);
+        });
+
+        nodeEl.querySelector('.btn-add-img').addEventListener('click', (e) => { e.stopPropagation(); window.activeMediaNode = nodeId; document.getElementById('image-upload-input').click(); });
+        nodeEl.querySelector('.btn-add-vid').addEventListener('click', (e) => { e.stopPropagation(); window.activeMediaNode = nodeId; document.getElementById('video-upload-input').click(); });
+
+        nodeEl.addEventListener('dragover', (e) => {
+            e.preventDefault(); e.stopPropagation(); const canvas = nodeEl.querySelector('.image-canvas-container');
+            if (canvas) {
+                const rect = canvas.getBoundingClientRect();
+                const isOver = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+                if (isOver) { canvas.classList.add('drag-over-canvas'); nodeEl.classList.remove('drop-target'); }
+                else { nodeEl.classList.add('drop-target'); canvas.classList.remove('drag-over-canvas'); }
+            } else nodeEl.classList.add('drop-target');
+        });
+        nodeEl.addEventListener('dragleave', () => { nodeEl.classList.remove('drop-target'); const canvas = nodeEl.querySelector('.image-canvas-container'); if(canvas) canvas.classList.remove('drag-over-canvas'); });
+        nodeEl.addEventListener('drop', (e) => {
+            e.preventDefault(); e.stopPropagation(); nodeEl.classList.remove('drop-target'); const canvas = nodeEl.querySelector('.image-canvas-container');
+            let isOver = false, rect = null;
+            if (canvas) { canvas.classList.remove('drag-over-canvas'); rect = canvas.getBoundingClientRect(); isOver = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom; }
+            if (e.dataTransfer.files.length > 0) handleDroppedFiles(e.dataTransfer.files, nodeId, isOver, e.clientX, e.clientY, rect);
+        });
+
+        const gallery = nodeEl.querySelector('.media-gallery');
+        gallery.addEventListener('click', (e) => {
+            if (isScissorsMode) return;
+            const info = e.target.closest('.video-info');
+            if (info) {
+                const item = info.closest('.media-video-item'); const name = item.querySelector('.video-name');
+                if (name.contentEditable === "true") return; 
+                const vid = nodes[nodeId].videos.find(v => v.id === item.dataset.id);
+                if (vid) openVideoPreview(vid.src);
+            }
+        });
+
+        gallery.addEventListener('dblclick', (e) => {
+            if (isScissorsMode) return;
+            const wrapper = e.target.closest('.mini-img-wrapper');
+            if (wrapper && !e.target.closest('.mh-resize') && !e.target.closest('.mh-rotate-handle')) {
+                e.stopPropagation(); openImagePreview(wrapper.querySelector('img').src);
+            }
+        });
+
+        gallery.addEventListener('mousedown', (e) => {
+            if (isScissorsMode || e.button !== 0 || e.target.closest('.video-name') || e.target.closest('.video-actions')) return;
+            
+            // 视频列表高度拖拽
+            if (e.target.closest('.video-list-resizer')) {
+                e.stopPropagation(); setGlobalSelect(true);
+                isResizingVidList = true; resizeVidListNodeId = nodeId; resizeVidListStartY = e.clientY;
+                resizeVidListStartH = nodes[nodeId].vidListHeight || 100;
+                document.body.style.cursor = 'ns-resize';
+                return;
+            }
+
+            const container = e.target.closest('.image-canvas-container');
+            if (container) {
+                // 画布内框选判定：点击空白区域开启框选
+                if (e.target === container) {
+                    e.stopPropagation(); setGlobalSelect(true);
+                    selectedMiniImgs.clear(); activeCanvasNodeId = nodeId;
+                    document.querySelectorAll('.mini-img-wrapper').forEach(w => w.classList.remove('active-img'));
+                    
+                    isCanvasSelecting = true;
+                    const rect = container.getBoundingClientRect();
+                    // 将屏幕差值转化为容器内正确的缩放比例坐标
+                    canvasSelectionStartX = (e.clientX - rect.left) / scale;
+                    canvasSelectionStartY = (e.clientY - rect.top) / scale;
+                    
+                    const cBox = document.getElementById(`c-box-${nodeId}`);
+                    cBox.style.left = canvasSelectionStartX + 'px';
+                    cBox.style.top = canvasSelectionStartY + 'px';
+                    cBox.style.width = '0px'; cBox.style.height = '0px';
+                    cBox.style.display = 'block';
+                    return;
+                }
+
+                // 点击图片/手柄处理
+                const wrapper = e.target.closest('.mini-img-wrapper');
+                if (!wrapper) return;
+
+                e.stopPropagation(); setGlobalSelect(true);
+                const imgId = wrapper.dataset.id;
+                activeCanvasNodeId = nodeId;
+                
+                // Shift多选支持
+                if (!e.shiftKey && !selectedMiniImgs.has(imgId)) {
+                    selectedMiniImgs.clear();
+                }
+                selectedMiniImgs.add(imgId);
+                
+                document.querySelectorAll('.mini-img-wrapper').forEach(w => w.classList.remove('active-img'));
+                selectedMiniImgs.forEach(id => {
+                    const el = document.querySelector(`#${nodeId} .mini-img-wrapper[data-id="${id}"]`);
+                    if (el) el.classList.add('active-img');
+                });
+
+                miniImgStartData = {};
+                selectedMiniImgs.forEach(id => {
+                    const img = nodes[nodeId].images.find(i => i.id === id);
+                    miniImgStartData[id] = { x: img.x, y: img.y, w: img.w, h: img.h, rot: img.rot || 0, ratio: img.w / img.h };
+                });
+                
+                miniImgStartX = e.clientX / scale; miniImgStartY = e.clientY / scale;
+
+                // --- 完美修正：缩放原点（对角）锚定 ---
+                if (e.target.classList.contains('mh-resize')) {
+                    isResizingMiniImg = true;
+                    activeResizeDir = e.target.dataset.dir; // tl, tr, bl, br
+                    document.body.style.cursor = 'nwse-resize';
+                } else if (e.target.classList.contains('mh-rotate-handle')) {
+                    isRotatingMiniImg = true;
+                    const rect = wrapper.getBoundingClientRect();
+                    rotateCenterScreenX = rect.left + rect.width / 2; rotateCenterScreenY = rect.top + rect.height / 2;
+                    startMouseAngle = Math.atan2(e.clientY - rotateCenterScreenY, e.clientX - rotateCenterScreenX) * 180 / Math.PI;
+                    document.body.style.cursor = 'crosshair';
+                } else if (e.target.tagName === 'IMG') {
+                    // 图片拖动，被选中者置顶
+                    let maxZ = Math.max(0, ...nodes[nodeId].images.map(i => i.z || 0));
+                    selectedMiniImgs.forEach(id => {
+                        const img = nodes[nodeId].images.find(i => i.id === id);
+                        img.z = ++maxZ;
+                        const el = document.querySelector(`#${nodeId} .mini-img-wrapper[data-id="${id}"]`);
+                        if(el) el.style.zIndex = img.z;
+                    });
+                    isDraggingMiniImg = true;
+                    document.body.style.cursor = 'grabbing';
+                }
+                return;
+            }
+
+            if (e.target.closest('.image-canvas-resizer')) {
+                e.stopPropagation(); setGlobalSelect(true);
+                isResizingCanvas = true; resizeCanvasNodeId = nodeId; resizeCanvasStartY = e.clientY;
+                resizeCanvasStartH = nodes[nodeId].imgCanvasHeight || 120;
+                document.body.style.cursor = 'ns-resize';
+            }
+        });
+    }
+
+    function isBackgroundEvent(e) { return !e.target.closest('.node') && !e.target.closest('#toolbar') && !e.target.closest('#media-preview-modal'); }
+
+    workspaceContainer.addEventListener('contextmenu', (e) => {
+        e.preventDefault(); isScissorsMode = true; document.body.classList.add('scissors-mode');
+        document.getElementById('sb-default').style.display = 'none'; document.getElementById('sb-scissors').style.display = 'inline';
+    });
+
+    window.addEventListener('mousedown', (e) => {
+        if (e.target.closest('#toolbar') || (!e.target.closest('#color-picker-wrapper') && document.getElementById('color-palette').classList.remove('show'))) return;
+
+        if (isScissorsMode && e.button === 0) { e.preventDefault(); isCutting = true; cutPath = [screenToWorkspace(e.clientX, e.clientY)]; drawCutPath(); return; }
+        if (isScissorsMode) return;
+
+        if (e.target.closest('#magnetic-port')) {
+            e.preventDefault(); e.stopPropagation(); setGlobalSelect(true);
+            isConnecting = true; connectStartNodeId = magneticPort.dataset.nodeId || window.hoveredMagneticNodeId; 
+            magneticPort.style.display = 'none'; tempLineEnd = screenToWorkspace(e.clientX, e.clientY);
+            drawAllLines(); return;
+        }
+
+        if (isBackgroundEvent(e) && e.button === 0) { 
+            selectedLineIndices.clear(); drawAllLines(); 
+            selectedMiniImgs.clear(); document.querySelectorAll('.mini-img-wrapper').forEach(w => w.classList.remove('active-img')); 
+        }
+
+        if (e.button === 1) {
+            e.preventDefault(); setGlobalSelect(true); isPanning = true;
+            startPanX = e.clientX - panX; startPanY = e.clientY - panY;
+            document.body.style.cursor = 'grabbing'; return;
+        }
+
+        const nodeEl = e.target.closest('.node');
+        if (nodeEl && e.button === 0 && !e.target.closest('.node-content > *') && !e.target.closest('.node-title') && !e.target.closest('.node-header-actions') && !e.target.closest('.resize-handle')) {
+            setGlobalSelect(true); nodesContainer.appendChild(nodeEl);
+            if (!selectedNodes.has(nodeEl.id)) { if (!e.shiftKey) clearSelection(); selectedNodes.add(nodeEl.id); updateSelectionVisuals(); }
+            isDraggingNode = true; dragStartMouseX = e.clientX; dragStartMouseY = e.clientY;
+            draggedNodesInitialPositions = {};
+            selectedNodes.forEach(id => { if(nodes[id]) draggedNodesInitialPositions[id] = {x:nodes[id].x, y:nodes[id].y}; });
+            return;
+        }
+
+        if (e.button === 0 && isBackgroundEvent(e)) {
+            setGlobalSelect(true); clearSelection(); isSelecting = true; const rect = workspaceContainer.getBoundingClientRect();
+            selectionStartX = e.clientX - rect.left; selectionStartY = e.clientY - rect.top;
+            selectionBox.style.left = `${selectionStartX}px`; selectionBox.style.top = `${selectionStartY}px`;
+            selectionBox.style.width = '0px'; selectionBox.style.height = '0px'; selectionBox.style.display = 'block';
+        }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (isCutting) {
+            const mouseWorkspace = screenToWorkspace(e.clientX, e.clientY); cutPath.push(mouseWorkspace); drawCutPath();
+            for (let i = connections.length - 1; i >= 0; i--) {
+                const conn = connections[i], start = getPortPos(conn.from, 'out'), end = getPortPos(conn.to, 'in');
+                if(!start || !end) continue;
+                const cp = Math.max(Math.abs(end.x - start.x) * 0.5, 50);
+                const p0 = start, p1 = { x: start.x + cp, y: start.y }, p2 = { x: end.x - cp, y: end.y }, p3 = end;
+                let prevP = p0, hit = false;
+                for (let j = 1; j <= 10; j++) {
+                    const curP = getBezierPoint(j / 10, p0, p1, p2, p3);
+                    if (doSegmentsIntersect(cutPath[cutPath.length-2] || mouseWorkspace, mouseWorkspace, prevP, curP)) { hit = true; break; }
+                    prevP = curP;
+                }
+                if (hit) { connections.splice(i, 1); selectedLineIndices.delete(i); drawAllLines(); }
+            }
+            return;
+        }
+
+        if (isScissorsMode) return;
+        const rect = workspaceContainer.getBoundingClientRect();
+        
+        if (isDraggingPreview) { previewImgPanX = previewStartPanX + (e.clientX - previewDragStartX); previewImgPanY = previewStartPanY + (e.clientY - previewDragStartY); updatePreviewImgTransform(); return; }
+
+        if (isResizingVidList && resizeVidListNodeId) {
+            const nh = Math.max(40, resizeVidListStartH + (e.clientY - resizeVidListStartY) / scale);
+            nodes[resizeVidListNodeId].vidListHeight = nh;
+            const el = document.querySelector(`#${resizeVidListNodeId} .video-list-container`);
+            if(el) el.style.height = `${nh}px`; drawAllLines(); return;
+        }
+
+        // --- 画布内的完美框选逻辑 ---
+        if (isCanvasSelecting && activeCanvasNodeId) {
+            const container = document.querySelector(`#${activeCanvasNodeId} .image-canvas-container`);
+            if (container) {
+                const cRect = container.getBoundingClientRect();
+                const curX = (e.clientX - cRect.left) / scale; 
+                const curY = (e.clientY - cRect.top) / scale;
+                
+                const l = Math.min(canvasSelectionStartX, curX), t = Math.min(canvasSelectionStartY, curY);
+                const w = Math.abs(curX - canvasSelectionStartX), h = Math.abs(curY - canvasSelectionStartY);
+                
+                const cBox = document.getElementById(`c-box-${activeCanvasNodeId}`);
+                if (cBox) {
+                    cBox.style.left = `${l}px`; cBox.style.top = `${t}px`;
+                    cBox.style.width = `${w}px`; cBox.style.height = `${h}px`;
+                }
+                
+                // 本地坐标系碰撞判定 (图片和框都在同一Scale下)
+                selectedMiniImgs.clear();
+                nodes[activeCanvasNodeId].images.forEach(img => {
+                    const ir = img.x + img.w, ib = img.y + img.h;
+                    if (img.x < l + w && ir > l && img.y < t + h && ib > t) selectedMiniImgs.add(img.id);
+                });
+                
+                document.querySelectorAll(`#${activeCanvasNodeId} .mini-img-wrapper`).forEach(wrapper => {
+                    if (selectedMiniImgs.has(wrapper.dataset.id)) wrapper.classList.add('active-img');
+                    else wrapper.classList.remove('active-img');
+                });
+            }
+            return;
+        }
+
+        // --- 核心更新：按对角原点完全锁定缩放 ---
+        if (isResizingMiniImg && activeCanvasNodeId) {
+            const dx = (e.clientX / scale) - miniImgStartX;
+            
+            selectedMiniImgs.forEach(imgId => {
+                const img = nodes[activeCanvasNodeId].images.find(i => i.id === imgId);
+                const startData = miniImgStartData[imgId];
+                
+                // 拖动左侧把手时，鼠标向左(dx<0)宽度增加
+                let deltaW = activeResizeDir.includes('l') ? -dx : dx; 
+                let nw = Math.max(20, startData.w + deltaW);
+                let nh = nw / startData.ratio;
+                
+                img.w = nw; img.h = nh;
+                
+                // 锁定对角的坐标锚定逻辑
+                if (activeResizeDir === 'br') {
+                    img.x = startData.x; img.y = startData.y;
+                } else if (activeResizeDir === 'tl') {
+                    img.x = startData.x + startData.w - nw; img.y = startData.y + startData.h - nh;
+                } else if (activeResizeDir === 'tr') {
+                    img.x = startData.x; img.y = startData.y + startData.h - nh;
+                } else if (activeResizeDir === 'bl') {
+                    img.x = startData.x + startData.w - nw; img.y = startData.y;
+                }
+                
+                const el = document.querySelector(`#${activeCanvasNodeId} .mini-img-wrapper[data-id="${imgId}"]`);
+                if(el) { el.style.width = `${img.w}px`; el.style.height = `${img.h}px`; el.style.transform = `translate(${img.x}px, ${img.y}px) rotate(${img.rot||0}deg)`; }
+            });
+            return;
+        }
+
+        if (isRotatingMiniImg && activeCanvasNodeId) {
+            const curAngle = Math.atan2(e.clientY - rotateCenterScreenY, e.clientX - rotateCenterScreenX) * 180 / Math.PI;
+            const dAngle = curAngle - startMouseAngle;
+            
+            selectedMiniImgs.forEach(imgId => {
+                const img = nodes[activeCanvasNodeId].images.find(i => i.id === imgId);
+                let newRot = miniImgStartData[imgId].rot + dAngle;
+                if (e.shiftKey) newRot = Math.round(newRot / 5) * 5; // 5度一格磁吸
+                img.rot = newRot;
+                const el = document.querySelector(`#${activeCanvasNodeId} .mini-img-wrapper[data-id="${imgId}"]`);
+                if(el) el.style.transform = `translate(${img.x}px, ${img.y}px) rotate(${img.rot}deg)`;
+            });
+            return;
+        }
+
+        if (isDraggingMiniImg && activeCanvasNodeId) {
+            const dx = (e.clientX / scale) - miniImgStartX;
+            const dy = (e.clientY / scale) - miniImgStartY;
+            
+            selectedMiniImgs.forEach(imgId => {
+                const img = nodes[activeCanvasNodeId].images.find(i => i.id === imgId);
+                const startData = miniImgStartData[imgId];
+                img.x = startData.x + dx; 
+                img.y = startData.y + dy;
+                const el = document.querySelector(`#${activeCanvasNodeId} .mini-img-wrapper[data-id="${imgId}"]`);
+                if(el) el.style.transform = `translate(${img.x}px, ${img.y}px) rotate(${img.rot||0}deg)`;
+            });
+            return;
+        }
+
+        if (isResizingCanvas && resizeCanvasNodeId) {
+            const nh = Math.max(60, resizeCanvasStartH + (e.clientY - resizeCanvasStartY) / scale);
+            nodes[resizeCanvasNodeId].imgCanvasHeight = nh;
+            const el = document.querySelector(`#${resizeCanvasNodeId} .image-canvas-container`);
+            if(el) el.style.height = `${nh}px`; drawAllLines(); return;
+        }
+
+        if (isPanning) { panX = e.clientX - startPanX; panY = e.clientY - startPanY; updateWorkspaceTransform(); return; }
+        
+        const local = screenToWorkspace(e.clientX, e.clientY);
+        if (isDraggingNode) {
+            const dx = (e.clientX - dragStartMouseX) / scale, dy = (e.clientY - dragStartMouseY) / scale;
+            selectedNodes.forEach(id => {
+                if(draggedNodesInitialPositions[id]) {
+                    nodes[id].x = draggedNodesInitialPositions[id].x + dx; nodes[id].y = draggedNodesInitialPositions[id].y + dy;
+                    const el = document.getElementById(id); el.style.left = `${nodes[id].x}px`; el.style.top = `${nodes[id].y}px`;
+                }
+            });
+            drawAllLines(); return;
+        }
+        if (isSelecting) {
+            const relX = e.clientX - rect.left, relY = e.clientY - rect.top;
+            const l = Math.min(selectionStartX, relX), t = Math.min(selectionStartY, relY), w = Math.abs(relX - selectionStartX), h = Math.abs(relY - selectionStartY);
+            selectionBox.style.left = `${l}px`; selectionBox.style.top = `${t}px`; selectionBox.style.width = `${w}px`; selectionBox.style.height = `${h}px`;
+            const sRect = selectionBox.getBoundingClientRect();
+            document.querySelectorAll('.node').forEach(nel => {
+                const nr = nel.getBoundingClientRect();
+                if (nr.left < sRect.right && nr.right > sRect.left && nr.top < sRect.bottom && nr.bottom > sRect.top) selectedNodes.add(nel.id);
+                else if(!e.shiftKey) selectedNodes.delete(nel.id);
+            });
+            updateSelectionVisuals(); return;
+        }
+        if (isConnecting) {
+            tempLineEnd = local; const target = e.target.closest('.node');
+            document.querySelectorAll('.node.drop-target').forEach(el => el.classList.remove('drop-target'));
+            if (target && target.id !== connectStartNodeId) { target.classList.add('drop-target'); tempLineEnd = getPortPos(target.id, 'in'); }
+            drawAllLines(); return;
+        }
+
+        if (!isConnecting && Object.keys(nodes).length > 0 && isBackgroundEvent({target:e.target})) {
+            let mDist = Infinity, bNode = null, bX = 0, bY = 0;
+            for (let id in nodes) {
+                let n = nodes[id], rx = n.x + n.w, ry = n.y + n.h / 2;
+                let d = Math.hypot(local.x - rx, local.y - ry);
+                if (d < 150 && local.x > rx - 40 && d < mDist) { mDist = d; bNode = id; bX = rx; bY = ry; }
+            }
+            if (bNode && !isDraggingNode && !isSelecting && !isPanning) {
+                magneticPort.style.display = 'flex';
+                let px = bX, py = bY;
+                if (mDist < 150) {
+                    let p = Math.pow(1 - (mDist / 150), 1.5);
+                    if(mDist < 40) p = 1; px = bX + (local.x - bX) * p; py = bY + (local.y - bY) * p;
+                }
+                magneticPort.style.left = `${px}px`; magneticPort.style.top = `${py}px`;
+                magneticPort.dataset.nodeId = bNode; window.hoveredMagneticNodeId = bNode;
+            } else { magneticPort.style.display = 'none'; magneticPort.dataset.nodeId = ""; window.hoveredMagneticNodeId = null; }
+        }
+    });
+
+    window.addEventListener('mouseup', () => {
+        if (isCutting) {
+            isCutting = false; isScissorsMode = false; document.body.classList.remove('scissors-mode');
+            document.getElementById('sb-default').style.display = 'inline'; document.getElementById('sb-scissors').style.display = 'none';
+            cutPath = []; drawCutPath(); return;
+        }
+
+        if (isCanvasSelecting) {
+            isCanvasSelecting = false;
+            document.querySelectorAll('.canvas-selection-box').forEach(b => b.style.display = 'none');
+        }
+
+        setGlobalSelect(false); isDraggingPreview = false; isDraggingNode = false; isDraggingMiniImg = false; isResizingCanvas = false;
+        
+        if (isResizingVidList) isResizingVidList = false;
+        if (isResizingMiniImg) isResizingMiniImg = false;
+        if (isRotatingMiniImg) isRotatingMiniImg = false;
+        document.body.style.cursor = 'default';
+        if (isPanning) { isPanning = false; document.body.style.cursor = 'default'; }
+        if (isSelecting) { isSelecting = false; selectionBox.style.display = 'none'; }
+        
+        if (isConnecting) {
+            const target = document.querySelector('.node.drop-target');
+            if (target && connectStartNodeId && target.id !== connectStartNodeId) {
+                if (!connections.find(c => c.from === connectStartNodeId && c.to === target.id)) connections.push({ from: connectStartNodeId, to: target.id });
+                target.classList.remove('drop-target');
+            }
+            isConnecting = false; connectStartNodeId = null; drawAllLines();
+        }
+    });
+
+    workspaceContainer.addEventListener('wheel', (e) => {
+        if (isScissorsMode || e.target.closest('#media-preview-modal') || e.target.closest('.media-gallery') || e.target.closest('textarea')) return;
+        e.preventDefault();
+        const zi = e.deltaY < 0 ? 1.08 : 0.92; const rect = workspaceContainer.getBoundingClientRect();
+        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        const lx = (mx - panX) / scale, ly = (my - panY) / scale;
+        let ns = Math.max(0.15, Math.min(scale * zi, 4));
+        if (ns !== scale) { scale = ns; panX = mx - lx * scale; panY = my - ly * scale; updateWorkspaceTransform(); }
+    }, { passive: false });
+
+    window.addEventListener('dblclick', (e) => {
+        if (isScissorsMode) return;
+        if (e.button === 0 && isBackgroundEvent(e)) { const l = screenToWorkspace(e.clientX, e.clientY); createNode(l.x - 120, l.y - 100); }
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+        
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            if (selectedMiniImgs.size > 0 && activeCanvasNodeId) {
+                const n = nodes[activeCanvasNodeId];
+                if (n) { 
+                    n.images = n.images.filter(i => !selectedMiniImgs.has(i.id)); 
+                    renderNodeMedia(activeCanvasNodeId); 
+                }
+                selectedMiniImgs.clear(); 
+                return;
+            }
+            
+            if (selectedLineIndices.size > 0) {
+                const sortedIndices = Array.from(selectedLineIndices).sort((a, b) => b - a);
+                sortedIndices.forEach(idx => connections.splice(idx, 1));
+                selectedLineIndices.clear(); drawAllLines();
+            }
+            deleteSelectedNodes();
+        }
+    });
+
+    function updateSelectionVisuals() {
+        document.querySelectorAll('.node').forEach(el => { if (selectedNodes.has(el.id)) el.classList.add('selected'); else el.classList.remove('selected'); });
+        document.querySelectorAll('.connection-line').forEach(el => { const idx = parseInt(el.dataset.idx); if (selectedLineIndices.has(idx)) el.classList.add('selected-line'); else el.classList.remove('selected-line'); });
+    }
+    
+    function clearSelection() { selectedNodes.clear(); selectedLineIndices.clear(); updateSelectionVisuals(); }
+    function deleteSelectedNodes() {
+        if(selectedNodes.size === 0) return;
+        selectedNodes.forEach(id => { const el = document.getElementById(id); if(el) el.remove(); delete nodes[id]; connections = connections.filter(c => c.from !== id && c.to !== id); });
+        selectedNodes.clear(); drawAllLines();
+    }
+
+    const modal = document.getElementById('media-preview-modal'), previewImg = document.getElementById('preview-image'), previewVid = document.getElementById('preview-video');
+    function openImagePreview(src) { previewImg.src = src; previewImg.style.display = 'block'; previewVid.style.display = 'none'; previewImgScale = 1; previewImgPanX = 0; previewImgPanY = 0; updatePreviewImgTransform(); modal.classList.add('show'); }
+    function openVideoPreview(src) { 
+        if (!src.startsWith('blob:') && !src.startsWith('http')) { alert('本地视频因浏览器安全机制断开连接。\n请点击"关联"图标重新选择该视频。'); return; }
+        previewVid.src = src; previewVid.style.display = 'block'; previewImg.style.display = 'none'; modal.classList.add('show'); previewVid.play(); 
+    }
+    function updatePreviewImgTransform() { previewImg.style.transform = `translate(${previewImgPanX}px, ${previewImgPanY}px) scale(${previewImgScale})`; }
+    function closePreview() { modal.classList.remove('show'); if(previewVid.style.display === 'block') { previewVid.pause(); previewVid.src = ''; } }
+    
+    modal.addEventListener('click', (e) => { if(e.target === modal || e.target.classList.contains('preview-image-container')) closePreview(); });
+    modal.addEventListener('dblclick', () => { if(previewImg.style.display === 'block') closePreview(); });
+    previewImg.addEventListener('mousedown', (e) => { if(e.button !== 0) return; e.preventDefault(); isDraggingPreview = true; previewDragStartX = e.clientX; previewDragStartY = e.clientY; previewStartPanX = previewImgPanX; previewStartPanY = previewImgPanY; });
+    modal.addEventListener('wheel', (e) => { if(previewImg.style.display === 'block') { e.preventDefault(); const zi = e.deltaY < 0 ? 1.1 : 0.9; previewImgScale = Math.max(0.2, Math.min(previewImgScale * zi, 10)); updatePreviewImgTransform(); } }, {passive: false});
+
+    document.getElementById('add-node-btn').addEventListener('click', () => { const c = screenToWorkspace(window.innerWidth / 2, window.innerHeight / 2); createNode(c.x - 120, c.y - 100); });
+    document.getElementById('save-btn').addEventListener('click', () => {
+        const exportNodes = JSON.parse(JSON.stringify(nodes));
+        for(let id in exportNodes) exportNodes[id].videos.forEach(v => { if(v.src.startsWith('blob:')) v.src = v.name; });
+        const data = JSON.stringify({ nodes: exportNodes, connections, scale, panX, panY });
+        const blob = new Blob([data], { type: 'application/json' }); const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'story_flowchart.json'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('file-input').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    if (data && data.nodes && data.connections) {
+                        nodesContainer.innerHTML = ''; svg.innerHTML = ''; nodes = {}; connections = []; selectedNodes.clear(); selectedLineIndices.clear();
+                        scale = data.scale || 1; panX = data.panX || 0; panY = data.panY || 0; updateWorkspaceTransform();
+                        nodes = data.nodes;
+                        Object.keys(nodes).forEach(id => {
+                            const n = nodes[id];
+                            if(n.image && !n.images) { n.images = [{id:generateId(), src:n.image, x:20, y:20, w:100, h:100, rot:0, z:0}]; delete n.image; }
+                            createNode(n.x, n.y, n.title, n.content, n.w, n.h, id, n.themeId, n.customColor, n.images, n.videos, n.imgCanvasHeight, n.fontSize, n.vidListHeight);
+                        });
+                        connections = data.connections; drawAllLines();
+                    }
+                } catch (err) { alert("读取存档失败！文件格式不正确或已损坏。"); }
+            };
+            reader.readAsText(file);
+        }
+        this.value = '';
+    });
+
+    document.getElementById('image-upload-input').addEventListener('change', function(e) {
+        if(!window.activeMediaNode) return;
+        Array.from(e.target.files).forEach(file => {
+            const r = new FileReader();
+            r.onload = (ev) => {
+                const n = nodes[window.activeMediaNode]; const tempImg = new Image();
+                tempImg.onload = () => {
+                    let initW = tempImg.width, initH = tempImg.height; if (initW > 120) { initH = (120 / initW) * initH; initW = 120; }
+                    n.images.push({ id: generateId(), src: ev.target.result, x: 10 + (n.images.length*10)%50, y: 10 + (n.images.length*10)%50, w: initW, h: initH, rot: 0, z: n.images.length });
+                    renderNodeMedia(window.activeMediaNode);
+                }; tempImg.src = ev.target.result;
+            }; r.readAsDataURL(file);
+        }); this.value = '';
+    });
+
+    document.getElementById('video-upload-input').addEventListener('change', function(e) {
+        if(!window.activeMediaNode) return;
+        const f = e.target.files[0]; if(!f) return;
+        nodes[window.activeMediaNode].videos.push({id: generateId(), name: f.name, src: URL.createObjectURL(f)});
+        renderNodeMedia(window.activeMediaNode); this.value = '';
+    });
+
+    document.getElementById('toolbar-color-btn').addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        document.getElementById('color-palette').classList.toggle('show'); 
+    });
+
+    document.querySelectorAll('.swatch').forEach(s => s.addEventListener('click', (e) => {
+        e.stopPropagation(); 
+        if (selectedNodes.size > 0) selectedNodes.forEach(id => applyNodeColor(id, parseInt(s.dataset.theme), null));
+        document.getElementById('color-palette').classList.remove('show');
+    }));
+
+    document.getElementById('custom-color-input').addEventListener('input', (e) => { 
+        if (selectedNodes.size > 0) selectedNodes.forEach(id => applyNodeColor(id, null, e.target.value)); 
+    });
+
+    updateWorkspaceTransform(); createNode(200, 150, "故事开端", "你从昏迷中醒来...");
+
+</script>
+</body>
+</html>
