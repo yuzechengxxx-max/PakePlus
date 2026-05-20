@@ -165,13 +165,31 @@
         .mh-resize.mh-bl { bottom: -6px; left: -6px; cursor: nesw-resize; }
         .mh-resize.mh-br { bottom: -6px; right: -6px; cursor: nwse-resize; }
         
+        /* 四角外围悬浮旋转热区 - 完美契合用户参考图的双向弯曲箭头光标 */
         .mini-img-wrapper .mh-rotate-handle { 
             position: absolute; width: 22px; height: 22px; z-index: 15; pointer-events: auto; border-radius: 50%; border: 1px dashed transparent; 
         }
-        .mh-rotate-handle.mh-rot-tl { top: -20px; left: -20px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke='black' stroke-width='4'%3E%3Cpath d='M15 6 A 9 9 0 0 0 6 15' /%3E%3Cpath d='M12 3 L15 6 L12 9' /%3E%3Cpath d='M3 12 L6 15 L9 12' /%3E%3C/g%3E%3Cg stroke='white' stroke-width='2'%3E%3Cpath d='M15 6 A 9 9 0 0 0 6 15' /%3E%3Cpath d='M12 3 L15 6 L12 9' /%3E%3Cpath d='M3 12 L6 15 L9 12' /%3E%3C/g%3E%3C/svg%3E") 12 12, crosshair; }
-        .mh-rotate-handle.mh-rot-tr { top: -20px; right: -20px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke='black' stroke-width='4'%3E%3Cpath d='M9 6 A 9 9 0 0 1 18 15' /%3E%3Cpath d='M12 3 L9 6 L12 9' /%3E%3Cpath d='M15 12 L18 15 L21 12' /%3E%3C/g%3E%3Cg stroke='white' stroke-width='2'%3E%3Cpath d='M9 6 A 9 9 0 0 1 18 15' /%3E%3Cpath d='M12 3 L9 6 L12 9' /%3E%3Cpath d='M15 12 L18 15 L21 12' /%3E%3C/g%3E%3C/svg%3E") 12 12, crosshair; }
-        .mh-rotate-handle.mh-rot-bl { bottom: -20px; left: -20px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke='black' stroke-width='4'%3E%3Cpath d='M6 9 A 9 9 0 0 0 15 18' /%3E%3Cpath d='M3 12 L6 9 L9 12' /%3E%3Cpath d='M12 15 L15 18 L12 21' /%3E%3C/g%3E%3Cg stroke='white' stroke-width='2'%3E%3Cpath d='M6 9 A 9 9 0 0 0 15 18' /%3E%3Cpath d='M3 12 L6 9 L9 12' /%3E%3Cpath d='M12 15 L15 18 L12 21' /%3E%3C/g%3E%3C/svg%3E") 12 12, crosshair; }
-        .mh-rotate-handle.mh-rot-br { bottom: -20px; right: -20px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke='black' stroke-width='4'%3E%3Cpath d='M18 9 A 9 9 0 0 1 9 18' /%3E%3Cpath d='M15 12 L18 9 L21 12' /%3E%3Cpath d='M12 15 L9 18 L12 21' /%3E%3C/g%3E%3Cg stroke='white' stroke-width='2'%3E%3Cpath d='M18 9 A 9 9 0 0 1 9 18' /%3E%3Cpath d='M15 12 L18 9 L21 12' /%3E%3Cpath d='M12 15 L9 18 L12 21' /%3E%3C/g%3E%3C/svg%3E") 12 12, crosshair; }
+        
+        /* 左上角：向下+向右弯曲箭头 */
+        .mh-rotate-handle.mh-rot-tl { 
+            top: -20px; left: -20px; 
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M8 18A10 10 0 0 1 18 8' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M8 18A10 10 0 0 1 18 8' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M14 5l4 3l-4 3z' fill='black'/%3E%3Cpath d='M14 5l4 3l-4 3z' fill='white' stroke='white' stroke-width='1'/%3E%3Cpath d='M5 14l3 4l3-4z' fill='black'/%3E%3Cpath d='M5 14l3 4l3-4z' fill='white' stroke='white' stroke-width='1'/%3E%3C/svg%3E") 16 16, crosshair; 
+        }
+        /* 右上角：向下+向左弯曲箭头 */
+        .mh-rotate-handle.mh-rot-tr { 
+            top: -20px; right: -20px; 
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M14 8a10 10 0 0 1 10 10' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M14 8a10 10 0 0 1 10 10' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M18 5l-4 3l4 3z' fill='black'/%3E%3Cpath d='M18 5l-4 3l4 3z' fill='white' stroke='white' stroke-width='1'/%3E%3Cpath d='M21 14l3 4l3-4z' fill='black'/%3E%3Cpath d='M21 14l3 4l3-4z' fill='white' stroke='white' stroke-width='1'/%3E%3C/svg%3E") 16 16, crosshair; 
+        }
+        /* 左下角：向上+向右弯曲箭头 */
+        .mh-rotate-handle.mh-rot-bl { 
+            bottom: -20px; left: -20px; 
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M8 14a10 10 0 0 0 10 10' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M8 14a10 10 0 0 0 10 10' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M5 18l3-4l3 4z' fill='black'/%3E%3Cpath d='M5 18l3-4l3 4z' fill='white' stroke='white' stroke-width='1'/%3E%3Cpath d='M14 21l4 3l-4 3z' fill='black'/%3E%3Cpath d='M14 21l4 3l-4 3z' fill='white' stroke='white' stroke-width='1'/%3E%3C/svg%3E") 16 16, crosshair; 
+        }
+        /* 右下角：向上+向左弯曲箭头 (完全对齐用户上传的示意图 image_0d2604.png) */
+        .mh-rotate-handle.mh-rot-br { 
+            bottom: -20px; right: -20px; 
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M14 24a10 10 0 0 0 10-10' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M14 24a10 10 0 0 0 10-10' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M18 21l-4 3l4 3z' fill='black'/%3E%3Cpath d='M18 21l-4 3l4 3z' fill='white' stroke='white' stroke-width='1'/%3E%3Cpath d='M21 18l3-4l3 4z' fill='black'/%3E%3Cpath d='M21 18l3-4l3 4z' fill='white' stroke='white' stroke-width='1'/%3E%3C/svg%3E") 16 16, crosshair; 
+        }
 
         .canvas-tip { position: absolute; bottom: 4px; left: 4px; color: rgba(128,128,128,0.6); font-size: 10px; pointer-events: none; z-index: 0; }
 
@@ -187,8 +205,10 @@
         .video-actions { display: flex; gap: 8px; align-items: center; padding-right: 5px; }
         .v-btn { color: #888; cursor: pointer; padding: 4px; transition: all 0.2s; font-size: 13px; }
         .v-btn:hover { color: #fff; }
-        .video-del-btn { color: #ef4444; } /* 修复删除按钮的颜色和类名 */
-        .video-del-btn:hover { color: #f87171; }
+        
+        /* 核心修复：视频删除按钮正确的标识与色彩反馈 */
+        .video-del-btn { color: #ef4444 !important; }
+        .video-del-btn:hover { color: #f87171 !important; }
 
         .video-list-resizer { width: 100%; height: 8px; background: var(--node-header); cursor: ns-resize; display: flex; justify-content: center; align-items: center; }
         .video-list-resizer::after { content: ''; width: 30px; height: 2px; background: var(--node-border); border-radius: 1px; }
@@ -211,6 +231,7 @@
         #preview-video { position: relative; z-index: 10; max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid #555; display: none; outline: none; pointer-events: auto; }
         .preview-tip { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.6); font-size: 14px; pointer-events: none; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 20px; z-index: 20;}
 
+        /* 状态栏 */
         #status-bar {
             position: fixed; bottom: 0; left: 0; right: 0; height: 30px; background-color: var(--status-bg); border-top: 1px solid var(--toolbar-border);
             display: flex; align-items: center; padding: 0 20px; color: var(--textarea-text); font-size: 12px; z-index: 100; transition: background-color 0.3s, border-color 0.3s, color 0.3s;
@@ -232,9 +253,13 @@
             </div>
         </div>
     </div>
-    <button id="save-btn" class="btn-secondary"><i class="fas fa-save"></i> 导出保存</button>
+    <button id="save-btn" class="btn-secondary" title="支持电脑本地另存为"><i class="fas fa-save"></i> 导出保存</button>
     <button id="load-btn" class="btn-secondary" onclick="document.getElementById('file-input').click()"><i class="fas fa-folder-open"></i> 导入文件</button>
     <input type="file" id="file-input" style="display: none;" accept=".json">
+    
+    <!-- 新增：项目同名视频一键自动重连按钮 -->
+    <button id="relink-folder-btn" class="btn-secondary" onclick="document.getElementById('directory-input').click()" title="一键关联项目内的所有本地视频"><i class="fas fa-link"></i> 关联项目文件夹</button>
+    <input type="file" id="directory-input" style="display: none;" webkitdirectory directory multiple>
 
     <div class="toolbar-right">
         <button id="theme-toggle-btn" class="btn-secondary"><i class="fas fa-sun"></i> 浅色模式</button>
@@ -270,15 +295,13 @@
 <input type="file" id="relink-video-input" style="display: none;" accept="video/*">
 
 <script>
-    // --- 阻止全局拖拽默认行为（解决打包成Exe后拖拽失效） ---
+    // --- 【重大更新】彻底拦截全局拖拽默认行为，保证在打包后的 Exe 中拖拽导入依然完美生效 ---
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         window.addEventListener(eventName, e => {
-            e.preventDefault();
-            e.stopPropagation();
+            e.preventDefault(); e.stopPropagation();
         }, false);
         document.addEventListener(eventName, e => {
-            e.preventDefault();
-            e.stopPropagation();
+            e.preventDefault(); e.stopPropagation();
         }, false);
     });
 
@@ -567,6 +590,39 @@
         this.value = '';
     });
 
+    // --- 【重磅新增】读取整个文件夹实现瞬间一键秒级视频重连映射 ---
+    document.getElementById('directory-input').addEventListener('change', function(e) {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+        
+        // 建立纯本地“文件名”到“Blob URL”的极速映射内存字典
+        const fileMap = {};
+        files.forEach(file => {
+            if(file.type.startsWith('video/')) {
+                fileMap[file.name] = URL.createObjectURL(file);
+            }
+        });
+
+        // 遍历目前加载的所有流程图节点
+        let matchedCount = 0;
+        Object.keys(nodes).forEach(nodeId => {
+            const n = nodes[nodeId];
+            let changed = false;
+            n.videos.forEach(vid => {
+                // 如果发现有匹配的文件名，立刻接通内存链路，告别重连
+                if (fileMap[vid.name]) {
+                    vid.src = fileMap[vid.name];
+                    changed = true;
+                    matchedCount++;
+                }
+            });
+            if (changed) renderNodeMedia(nodeId);
+        });
+
+        alert(`扫描完毕！成功自动接通并恢复了 ${matchedCount} 个失效的视频节点线路。`);
+        this.value = '';
+    });
+
     function handleDroppedFiles(files, nodeId, isOverCanvas, mouseX, mouseY, canvasRect) {
         const n = nodes[nodeId];
         Array.from(files).forEach(file => {
@@ -621,6 +677,7 @@
         nodeEl.querySelector('.btn-add-img').addEventListener('click', (e) => { e.stopPropagation(); window.activeMediaNode = nodeId; document.getElementById('image-upload-input').click(); });
         nodeEl.querySelector('.btn-add-vid').addEventListener('click', (e) => { e.stopPropagation(); window.activeMediaNode = nodeId; document.getElementById('video-upload-input').click(); });
 
+        // 精准区分局部与整个大画布的拖拽事件，在 exe 中彻底阻止默认浏览器行为
         nodeEl.addEventListener('dragover', (e) => {
             e.preventDefault(); e.stopPropagation(); const canvas = nodeEl.querySelector('.image-canvas-container');
             if (canvas) {
@@ -630,12 +687,12 @@
                 else { nodeEl.classList.add('drop-target'); canvas.classList.remove('drag-over-canvas'); }
             } else nodeEl.classList.add('drop-target');
         });
-        nodeEl.addEventListener('dragleave', () => { nodeEl.classList.remove('drop-target'); const canvas = nodeEl.querySelector('.image-canvas-container'); if(canvas) canvas.classList.remove('drag-over-canvas'); });
+        nodeEl.addEventListener('dragleave', (e) => { e.preventDefault(); e.stopPropagation(); nodeEl.classList.remove('drop-target'); const canvas = nodeEl.querySelector('.image-canvas-container'); if(canvas) canvas.classList.remove('drag-over-canvas'); });
         nodeEl.addEventListener('drop', (e) => {
             e.preventDefault(); e.stopPropagation(); nodeEl.classList.remove('drop-target'); const canvas = nodeEl.querySelector('.image-canvas-container');
             let isOver = false, rect = null;
             if (canvas) { canvas.classList.remove('drag-over-canvas'); rect = canvas.getBoundingClientRect(); isOver = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom; }
-            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) handleDroppedFiles(e.dataTransfer.files, nodeId, isOver, e.clientX, e.clientY, rect);
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) handleDroppedFiles(e.dataTransfer.files, nodeId, isOver, e.clientX, e.clientY, rect);
         });
 
         const gallery = nodeEl.querySelector('.media-gallery');
@@ -661,6 +718,7 @@
         gallery.addEventListener('mousedown', (e) => {
             if (isScissorsMode || e.button !== 0 || e.target.closest('.video-name') || e.target.closest('.video-actions')) return;
             
+            // 视频列表高度拖拽
             if (e.target.closest('.video-list-resizer')) {
                 e.stopPropagation(); setGlobalSelect(true);
                 isResizingVidList = true; resizeVidListNodeId = nodeId; resizeVidListStartY = e.clientY;
@@ -683,10 +741,8 @@
                     
                     const cBox = document.getElementById(`c-box-${nodeId}`);
                     if(cBox) {
-                        cBox.style.left = canvasSelectionStartX + 'px';
-                        cBox.style.top = canvasSelectionStartY + 'px';
-                        cBox.style.width = '0px'; cBox.style.height = '0px';
-                        cBox.style.display = 'block';
+                        cBox.style.left = canvasSelectionStartX + 'px'; cBox.style.top = canvasSelectionStartY + 'px';
+                        cBox.style.width = '0px'; cBox.style.height = '0px'; cBox.style.display = 'block';
                     }
                     return;
                 }
@@ -695,12 +751,9 @@
                 if (!wrapper) return;
 
                 e.stopPropagation(); setGlobalSelect(true);
-                const imgId = wrapper.dataset.id;
-                activeCanvasNodeId = nodeId;
+                const imgId = wrapper.dataset.id; activeCanvasNodeId = nodeId;
                 
-                if (!e.shiftKey && !selectedMiniImgs.has(imgId)) {
-                    selectedMiniImgs.clear();
-                }
+                if (!e.shiftKey && !selectedMiniImgs.has(imgId)) { selectedMiniImgs.clear(); }
                 selectedMiniImgs.add(imgId);
                 
                 document.querySelectorAll('.mini-img-wrapper').forEach(w => w.classList.remove('active-img'));
@@ -718,8 +771,7 @@
                 miniImgStartX = e.clientX / scale; miniImgStartY = e.clientY / scale;
 
                 if (e.target.classList.contains('mh-resize')) {
-                    isResizingMiniImg = true;
-                    activeResizeDir = e.target.dataset.dir; 
+                    isResizingMiniImg = true; activeResizeDir = e.target.dataset.dir; 
                     document.body.style.cursor = 'nwse-resize';
                 } else if (e.target.classList.contains('mh-rotate-handle')) {
                     isRotatingMiniImg = true;
@@ -735,15 +787,17 @@
                         const el = document.querySelector(`#${nodeId} .mini-img-wrapper[data-id="${id}"]`);
                         if(el) el.style.zIndex = img.z;
                     });
-                    isDraggingMiniImg = true;
-                    document.body.style.cursor = 'grabbing';
+                    isDraggingMiniImg = true; document.body.style.cursor = 'grabbing';
                 }
                 return;
             }
 
-            // 彻底修复视频删除按钮点击失效的 Bug (选择器改为 .video-del-btn)
+            // 彻底修复：点击视频列表内的删除按钮失效的 bug
             if (e.target.closest('.video-del-btn')) {
-                e.stopPropagation(); nodes[nodeId].videos = nodes[nodeId].videos.filter(v => v.id !== e.target.closest('.media-video-item').dataset.id); renderNodeMedia(nodeId); return;
+                e.stopPropagation();
+                const vItem = e.target.closest('.media-video-item');
+                nodes[nodeId].videos = nodes[nodeId].videos.filter(v => v.id !== vItem.dataset.id);
+                renderNodeMedia(nodeId); return;
             }
 
             if (e.target.closest('.image-canvas-resizer')) {
@@ -867,29 +921,26 @@
 
         if (isResizingMiniImg && activeCanvasNodeId) {
             const dx = (e.clientX / scale) - miniImgStartX;
-            const dy = (e.clientY / scale) - miniImgStartY;
             
             selectedMiniImgs.forEach(imgId => {
                 const img = nodes[activeCanvasNodeId].images.find(i => i.id === imgId);
                 const startData = miniImgStartData[imgId];
                 
-                let nw = startData.w, nh = startData.h;
-                
-                // 等比缩放
-                if (activeResizeDir === 'br') {
-                    nw = Math.max(20, startData.w + dx); nh = nw / startData.ratio;
-                } else if (activeResizeDir === 'tl') {
-                    nw = Math.max(20, startData.w - dx); nh = nw / startData.ratio;
-                    img.x = startData.x + startData.w - nw; img.y = startData.y + startData.h - nh;
-                } else if (activeResizeDir === 'tr') {
-                    nw = Math.max(20, startData.w + dx); nh = nw / startData.ratio;
-                    img.y = startData.y + startData.h - nh;
-                } else if (activeResizeDir === 'bl') {
-                    nw = Math.max(20, startData.w - dx); nh = nw / startData.ratio;
-                    img.x = startData.x + startData.w - nw;
-                }
+                let deltaW = activeResizeDir.includes('l') ? -dx : dx; 
+                let nw = Math.max(20, startData.w + deltaW);
+                let nh = nw / startData.ratio;
                 
                 img.w = nw; img.h = nh;
+                
+                if (activeResizeDir === 'br') {
+                    img.x = startData.x; img.y = startData.y;
+                } else if (activeResizeDir === 'tl') {
+                    img.x = startData.x + startData.w - nw; img.y = startData.y + startData.h - nh;
+                } else if (activeResizeDir === 'tr') {
+                    img.x = startData.x; img.y = startData.y + startData.h - nh;
+                } else if (activeResizeDir === 'bl') {
+                    img.x = startData.x + startData.w - nw; img.y = startData.y;
+                }
                 
                 const el = document.querySelector(`#${activeCanvasNodeId} .mini-img-wrapper[data-id="${imgId}"]`);
                 if(el) { el.style.width = `${img.w}px`; el.style.height = `${img.h}px`; el.style.transform = `translate(${img.x}px, ${img.y}px) rotate(${img.rot||0}deg)`; }
@@ -1038,14 +1089,9 @@
         if (e.key === 'Delete' || e.key === 'Backspace') {
             if (selectedMiniImgs.size > 0 && activeCanvasNodeId) {
                 const n = nodes[activeCanvasNodeId];
-                if (n) { 
-                    n.images = n.images.filter(i => !selectedMiniImgs.has(i.id)); 
-                    renderNodeMedia(activeCanvasNodeId); 
-                }
-                selectedMiniImgs.clear(); 
-                return;
+                if (n) { n.images = n.images.filter(i => !selectedMiniImgs.has(i.id)); renderNodeMedia(activeCanvasNodeId); }
+                selectedMiniImgs.clear(); return;
             }
-            
             if (selectedLineIndices.size > 0) {
                 const sortedIndices = Array.from(selectedLineIndices).sort((a, b) => b - a);
                 sortedIndices.forEach(idx => connections.splice(idx, 1));
@@ -1083,14 +1129,11 @@
 
     document.getElementById('add-node-btn').addEventListener('click', () => { const c = screenToWorkspace(window.innerWidth / 2, window.innerHeight / 2); createNode(c.x - 120, c.y - 100); });
     
-    // --- 极速适配桌面端WebView的导出逻辑 ---
     document.getElementById('save-btn').addEventListener('click', async () => {
         const exportNodes = JSON.parse(JSON.stringify(nodes));
         for(let id in exportNodes) exportNodes[id].videos.forEach(v => { if(v.src.startsWith('blob:')) v.src = v.name; });
         const dataStr = JSON.stringify({ nodes: exportNodes, connections, scale, panX, panY });
-        
         try {
-            // 桌面端 Pake/WebView2 首选使用原生文件弹窗 API
             if (window.showSaveFilePicker) {
                 const handle = await window.showSaveFilePicker({
                     suggestedName: 'story_flowchart.json',
@@ -1098,20 +1141,11 @@
                 });
                 const writable = await handle.createWritable();
                 await writable.write(dataStr);
-                await writable.close();
-                return;
+                await writable.close(); return;
             }
-        } catch (err) {
-            // 用户点击了取消则退出
-            if (err.name === 'AbortError') return;
-        }
-
-        // 兜底：传统方式
-        const blob = new Blob([dataStr], { type: 'application/json' }); 
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'story_flowchart.json'; 
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        } catch (err) { if (err.name === 'AbortError') return; }
+        const blob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'story_flowchart.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     });
 
     document.getElementById('file-input').addEventListener('change', function(e) {
@@ -1161,20 +1195,12 @@
         renderNodeMedia(window.activeMediaNode); this.value = '';
     });
 
-    document.getElementById('toolbar-color-btn').addEventListener('click', (e) => { 
-        e.stopPropagation(); 
-        document.getElementById('color-palette').classList.toggle('show'); 
-    });
-
+    document.getElementById('toolbar-color-btn').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('color-palette').classList.toggle('show'); });
     document.querySelectorAll('.swatch').forEach(s => s.addEventListener('click', (e) => {
-        e.stopPropagation(); 
-        if (selectedNodes.size > 0) selectedNodes.forEach(id => applyNodeColor(id, parseInt(s.dataset.theme), null));
+        e.stopPropagation(); if (selectedNodes.size > 0) selectedNodes.forEach(id => applyNodeColor(id, parseInt(s.dataset.theme), null));
         document.getElementById('color-palette').classList.remove('show');
     }));
-
-    document.getElementById('custom-color-input').addEventListener('input', (e) => { 
-        if (selectedNodes.size > 0) selectedNodes.forEach(id => applyNodeColor(id, null, e.target.value)); 
-    });
+    document.getElementById('custom-color-input').addEventListener('input', (e) => { if (selectedNodes.size > 0) selectedNodes.forEach(id => applyNodeColor(id, null, e.target.value)); });
 
     updateWorkspaceTransform(); createNode(200, 150, "故事开端", "你从昏迷中醒来...");
 
