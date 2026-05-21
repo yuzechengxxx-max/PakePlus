@@ -96,8 +96,9 @@
         #workspace { position: absolute; top: 0; left: 0; width: 0; height: 0; transform-origin: 0 0; }
         #svg-canvas { position: absolute; top: -50000px; left: -50000px; width: 100000px; height: 100000px; overflow: visible; pointer-events: none; z-index: 0; }
 
-        .connection-line { fill: none; stroke: #3b82f6; stroke-width: 2; transition: stroke 0.2s, stroke-width 0.2s; pointer-events: none; }
-        .connection-line.selected-line { stroke: #ef4444; stroke-width: 4; }
+        /* 连接线加粗至 3.5px */
+        .connection-line { fill: none; stroke: #3b82f6; stroke-width: 3.5; transition: stroke 0.2s, stroke-width 0.2s; pointer-events: none; }
+        .connection-line.selected-line { stroke: #ef4444; stroke-width: 5.5; }
         .connection-hitbox { fill: none; stroke: transparent; stroke-width: 25; cursor: pointer; pointer-events: stroke; }
         .cut-path { fill: none; stroke: #ef4444; stroke-width: 3; stroke-dasharray: 6, 6; pointer-events: none; z-index: 1000; }
 
@@ -165,27 +166,24 @@
         .mh-resize.mh-bl { bottom: -6px; left: -6px; cursor: nesw-resize; }
         .mh-resize.mh-br { bottom: -6px; right: -6px; cursor: nwse-resize; }
         
-        /* 四角外围悬浮旋转热区 - 完美契合用户参考图的双向弯曲箭头光标 */
+        /* 四角外围悬浮旋转热区 - 弯曲箭头光标 */
         .mini-img-wrapper .mh-rotate-handle { 
             position: absolute; width: 22px; height: 22px; z-index: 15; pointer-events: auto; border-radius: 50%; border: 1px dashed transparent; 
         }
         
-        /* 左上角：向下+向右弯曲箭头 */
+        /* 四角对应的旋转弯曲箭头 */
         .mh-rotate-handle.mh-rot-tl { 
             top: -20px; left: -20px; 
             cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M8 18A10 10 0 0 1 18 8' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M8 18A10 10 0 0 1 18 8' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M14 5l4 3l-4 3z' fill='black'/%3E%3Cpath d='M14 5l4 3l-4 3z' fill='white' stroke='white' stroke-width='1'/%3E%3Cpath d='M5 14l3 4l3-4z' fill='black'/%3E%3Cpath d='M5 14l3 4l3-4z' fill='white' stroke='white' stroke-width='1'/%3E%3C/svg%3E") 16 16, crosshair; 
         }
-        /* 右上角：向下+向左弯曲箭头 */
         .mh-rotate-handle.mh-rot-tr { 
             top: -20px; right: -20px; 
             cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M14 8a10 10 0 0 1 10 10' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M14 8a10 10 0 0 1 10 10' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M18 5l-4 3l4 3z' fill='black'/%3E%3Cpath d='M18 5l-4 3l4 3z' fill='white' stroke='white' stroke-width='1'/%3E%3Cpath d='M21 14l3 4l3-4z' fill='black'/%3E%3Cpath d='M21 14l3 4l3-4z' fill='white' stroke='white' stroke-width='1'/%3E%3C/svg%3E") 16 16, crosshair; 
         }
-        /* 左下角：向上+向右弯曲箭头 */
         .mh-rotate-handle.mh-rot-bl { 
             bottom: -20px; left: -20px; 
             cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M8 14a10 10 0 0 0 10 10' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M8 14a10 10 0 0 0 10 10' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M5 18l3-4l3 4z' fill='black'/%3E%3Cpath d='M5 18l3-4l3 4z' fill='white' stroke='white' stroke-width='1'/%3E%3Cpath d='M14 21l4 3l-4 3z' fill='black'/%3E%3Cpath d='M14 21l4 3l-4 3z' fill='white' stroke='white' stroke-width='1'/%3E%3C/svg%3E") 16 16, crosshair; 
         }
-        /* 右下角：向上+向左弯曲箭头 (完全对齐用户上传的示意图 image_0d2604.png) */
         .mh-rotate-handle.mh-rot-br { 
             bottom: -20px; right: -20px; 
             cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M14 24a10 10 0 0 0 10-10' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M14 24a10 10 0 0 0 10-10' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M18 21l-4 3l4 3z' fill='black'/%3E%3Cpath d='M18 21l-4 3l4 3z' fill='white' stroke='white' stroke-width='1'/%3E%3Cpath d='M21 18l3-4l3 4z' fill='black'/%3E%3Cpath d='M21 18l3-4l3 4z' fill='white' stroke='white' stroke-width='1'/%3E%3C/svg%3E") 16 16, crosshair; 
@@ -206,7 +204,6 @@
         .v-btn { color: #888; cursor: pointer; padding: 4px; transition: all 0.2s; font-size: 13px; }
         .v-btn:hover { color: #fff; }
         
-        /* 核心修复：视频删除按钮正确的标识与色彩反馈 */
         .video-del-btn { color: #ef4444 !important; }
         .video-del-btn:hover { color: #f87171 !important; }
 
@@ -299,9 +296,11 @@
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         window.addEventListener(eventName, e => {
             e.preventDefault(); e.stopPropagation();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
         }, false);
         document.addEventListener(eventName, e => {
             e.preventDefault(); e.stopPropagation();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
         }, false);
     });
 
@@ -448,6 +447,16 @@
                 if (!e.shiftKey) selectedLineIndices.clear();
                 selectedLineIndices.add(idx); drawAllLines();
             });
+            // 双击连线删除复活
+            hitbox.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                const idx = parseInt(e.target.dataset.idx);
+                if (!isNaN(idx)) {
+                    connections.splice(idx, 1);
+                    selectedLineIndices.clear();
+                    drawAllLines();
+                }
+            });
         });
     }
 
@@ -513,7 +522,7 @@
                     <div class="video-actions">
                         <i class="fas fa-link v-btn" title="重新关联本地视频" onclick="event.stopPropagation(); window.triggerRelinkVid(this, '${nodeId}', '${vid.id}')"></i>
                         <i class="fas fa-edit v-btn" title="重命名" onclick="event.stopPropagation(); window.startRenameVid(this, '${nodeId}', '${vid.id}')"></i>
-                        <i class="fas fa-times video-del-btn v-btn" title="删除"></i>
+                        <i class="fas fa-times video-del-btn v-btn" title="删除" onclick="event.stopPropagation(); window.deleteVid('${nodeId}', '${vid.id}')"></i>
                     </div>
                 </div>`;
             });
@@ -523,6 +532,15 @@
 
         if (hasContent) gallery.classList.add('has-content'); else gallery.classList.remove('has-content');
     }
+
+    // 全局删除视频，绕开 mousedown 冒泡产生的冲突，彻底解决删除失效
+    window.deleteVid = function(nodeId, vidId) {
+        const n = nodes[nodeId];
+        if (n) {
+            n.videos = n.videos.filter(v => v.id !== vidId);
+            renderNodeMedia(nodeId);
+        }
+    };
 
     function createNode(x, y, title = "新场景", content = "", width = 240, height = 200, id = null, themeId = 0, customColor = null, images = [], videos = [], imgCanvasHeight = 120, fontSize = 14, vidListHeight = 100) {
         const nodeId = id || generateId();
@@ -595,7 +613,7 @@
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
         
-        // 建立纯本地“文件名”到“Blob URL”的极速映射内存字典
+        // 建立纯本地“原始文件名”或“显示文件名”到“Blob URL”的极速映射内存字典
         const fileMap = {};
         files.forEach(file => {
             if(file.type.startsWith('video/')) {
@@ -603,15 +621,15 @@
             }
         });
 
-        // 遍历目前加载的所有流程图节点
+        // 遍历目前加载的所有流程图节点，使用 originalName 防重命名断连
         let matchedCount = 0;
         Object.keys(nodes).forEach(nodeId => {
             const n = nodes[nodeId];
             let changed = false;
             n.videos.forEach(vid => {
-                // 如果发现有匹配的文件名，立刻接通内存链路，告别重连
-                if (fileMap[vid.name]) {
-                    vid.src = fileMap[vid.name];
+                const searchName = vid.originalName || vid.name;
+                if (fileMap[searchName]) {
+                    vid.src = fileMap[searchName];
                     changed = true;
                     matchedCount++;
                 }
@@ -648,7 +666,8 @@
                 };
                 reader.readAsDataURL(file);
             } else if (file.type.startsWith('video/')) {
-                n.videos.push({id: generateId(), name: file.name, src: URL.createObjectURL(file)});
+                // 存储 originalName，解决在节点内重命名导致重连失效的问题
+                n.videos.push({id: generateId(), name: file.name, originalName: file.name, src: URL.createObjectURL(file)});
                 renderNodeMedia(nodeId);
             }
         });
@@ -677,9 +696,11 @@
         nodeEl.querySelector('.btn-add-img').addEventListener('click', (e) => { e.stopPropagation(); window.activeMediaNode = nodeId; document.getElementById('image-upload-input').click(); });
         nodeEl.querySelector('.btn-add-vid').addEventListener('click', (e) => { e.stopPropagation(); window.activeMediaNode = nodeId; document.getElementById('video-upload-input').click(); });
 
-        // 精准区分局部与整个大画布的拖拽事件，在 exe 中彻底阻止默认浏览器行为
+        // 精准区分局部与整个大画布的拖拽事件，设置 copy 确保在 exe 内拖放事件顺畅穿透
         nodeEl.addEventListener('dragover', (e) => {
-            e.preventDefault(); e.stopPropagation(); const canvas = nodeEl.querySelector('.image-canvas-container');
+            e.preventDefault(); e.stopPropagation();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+            const canvas = nodeEl.querySelector('.image-canvas-container');
             if (canvas) {
                 const rect = canvas.getBoundingClientRect();
                 const isOver = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
@@ -790,14 +811,6 @@
                     isDraggingMiniImg = true; document.body.style.cursor = 'grabbing';
                 }
                 return;
-            }
-
-            // 彻底修复：点击视频列表内的删除按钮失效的 bug
-            if (e.target.closest('.video-del-btn')) {
-                e.stopPropagation();
-                const vItem = e.target.closest('.media-video-item');
-                nodes[nodeId].videos = nodes[nodeId].videos.filter(v => v.id !== vItem.dataset.id);
-                renderNodeMedia(nodeId); return;
             }
 
             if (e.target.closest('.image-canvas-resizer')) {
@@ -926,21 +939,22 @@
                 const img = nodes[activeCanvasNodeId].images.find(i => i.id === imgId);
                 const startData = miniImgStartData[imgId];
                 
-                let deltaW = activeResizeDir.includes('l') ? -dx : dx; 
-                let nw = Math.max(20, startData.w + deltaW);
-                let nh = nw / startData.ratio;
-                
-                img.w = nw; img.h = nh;
+                let nw = startData.w, nh = startData.h;
                 
                 if (activeResizeDir === 'br') {
-                    img.x = startData.x; img.y = startData.y;
+                    nw = Math.max(20, startData.w + dx); nh = nw / startData.ratio;
                 } else if (activeResizeDir === 'tl') {
+                    nw = Math.max(20, startData.w - dx); nh = nw / startData.ratio;
                     img.x = startData.x + startData.w - nw; img.y = startData.y + startData.h - nh;
                 } else if (activeResizeDir === 'tr') {
-                    img.x = startData.x; img.y = startData.y + startData.h - nh;
+                    nw = Math.max(20, startData.w + dx); nh = nw / startData.ratio;
+                    img.y = startData.y + startData.h - nh;
                 } else if (activeResizeDir === 'bl') {
-                    img.x = startData.x + startData.w - nw; img.y = startData.y;
+                    nw = Math.max(20, startData.w - dx); nh = nw / startData.ratio;
+                    img.x = startData.x + startData.w - nw;
                 }
+                
+                img.w = nw; img.h = nh;
                 
                 const el = document.querySelector(`#${activeCanvasNodeId} .mini-img-wrapper[data-id="${imgId}"]`);
                 if(el) { el.style.width = `${img.w}px`; el.style.height = `${img.h}px`; el.style.transform = `translate(${img.x}px, ${img.y}px) rotate(${img.rot||0}deg)`; }
@@ -1191,16 +1205,25 @@
     document.getElementById('video-upload-input').addEventListener('change', function(e) {
         if(!window.activeMediaNode) return;
         const f = e.target.files[0]; if(!f) return;
-        nodes[window.activeMediaNode].videos.push({id: generateId(), name: f.name, src: URL.createObjectURL(f)});
+        // 存储 originalName，防止重命名丢失物理关联
+        nodes[window.activeMediaNode].videos.push({id: generateId(), name: f.name, originalName: f.name, src: URL.createObjectURL(f)});
         renderNodeMedia(window.activeMediaNode); this.value = '';
     });
 
-    document.getElementById('toolbar-color-btn').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('color-palette').classList.toggle('show'); });
+    document.getElementById('toolbar-color-btn').addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        document.getElementById('color-palette').classList.toggle('show'); 
+    });
+
     document.querySelectorAll('.swatch').forEach(s => s.addEventListener('click', (e) => {
-        e.stopPropagation(); if (selectedNodes.size > 0) selectedNodes.forEach(id => applyNodeColor(id, parseInt(s.dataset.theme), null));
+        e.stopPropagation(); 
+        if (selectedNodes.size > 0) selectedNodes.forEach(id => applyNodeColor(id, parseInt(s.dataset.theme), null));
         document.getElementById('color-palette').classList.remove('show');
     }));
-    document.getElementById('custom-color-input').addEventListener('input', (e) => { if (selectedNodes.size > 0) selectedNodes.forEach(id => applyNodeColor(id, null, e.target.value)); });
+
+    document.getElementById('custom-color-input').addEventListener('input', (e) => { 
+        if (selectedNodes.size > 0) selectedNodes.forEach(id => applyNodeColor(id, null, e.target.value)); 
+    });
 
     updateWorkspaceTransform(); createNode(200, 150, "故事开端", "你从昏迷中醒来...");
 
