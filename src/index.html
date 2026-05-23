@@ -60,6 +60,29 @@
 
         body.scissors-mode, body.scissors-mode * { cursor: crosshair !important; }
 
+        /* 左键平移激活时的全局光标控制 */
+        body.pan-cursor-active #workspace-container {
+            cursor: grab;
+        }
+        body.pan-cursor-active #workspace-container:active {
+            cursor: grabbing !important;
+        }
+        /* 鼠标指在节点上时恢复正常光标，允许操作 */
+        body.pan-cursor-active .node,
+        body.pan-cursor-active .node :not(.resize-handle):not(.node-btn):not(.mh-resize):not(.mh-rotate-handle):not(.mini-img-wrapper) {
+            cursor: default !important;
+        }
+        body.pan-cursor-active .node input,
+        body.pan-cursor-active .node textarea {
+            cursor: text !important;
+        }
+        body.pan-cursor-active .node .mini-img-wrapper {
+            cursor: grab !important;
+        }
+        body.pan-cursor-active .node .resize-handle {
+            cursor: nwse-resize !important;
+        }
+
         #toolbar {
             height: 50px; background-color: var(--toolbar-bg); border-bottom: 1px solid var(--toolbar-border);
             display: flex; align-items: center; padding: 0 20px; gap: 15px; z-index: 100;
@@ -88,15 +111,59 @@
         .custom-color-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; border-top: 1px solid var(--node-border); padding-top: 8px; color: var(--text-color); }
         #custom-color-input { width: 26px; height: 26px; padding: 0; border: none; border-radius: 4px; cursor: pointer; background: none; }
 
+        /* 左侧竖排悬浮工具栏 */
+        #left-toolbar {
+            position: absolute;
+            left: 20px;
+            top: 70px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+        .left-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            background-color: var(--toolbar-bg);
+            border: 1px solid var(--toolbar-border);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            padding: 0;
+        }
+        .left-btn:hover {
+            background-color: var(--btn-bg);
+            color: #3b82f6;
+        }
+        .left-btn.active {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.6);
+        }
+
         #workspace-container {
             flex-grow: 1; position: relative; overflow: hidden;
             background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px);
             background-size: 30px 30px; transition: background-image 0.3s;
         }
+        /* 一键开关点阵背景 */
+        #workspace-container.grid-hidden {
+            background-image: none !important;
+        }
+
         #workspace { position: absolute; top: 0; left: 0; width: 0; height: 0; transform-origin: 0 0; }
         
         #svg-canvas-bg { position: absolute; top: -50000px; left: -50000px; width: 100000px; height: 100000px; overflow: visible; pointer-events: none; z-index: 0; }
         #svg-canvas-fg { position: absolute; top: -50000px; left: -50000px; width: 100000px; height: 100000px; overflow: visible; pointer-events: none; z-index: 2; }
+        /* 智能对齐磁吸辅助线绘制层 */
+        #svg-guidelines { position: absolute; top: -50000px; left: -50000px; width: 100000px; height: 100000px; overflow: visible; pointer-events: none; z-index: 3; }
 
         .connection-line { fill: none; stroke: #3b82f6; stroke-width: 3.5; transition: stroke 0.2s, stroke-width 0.2s; pointer-events: none; }
         .connection-line.selected-line { stroke: #ef4444; stroke-width: 5.5; }
@@ -197,8 +264,28 @@
         .video-list-resizer::after { content: ''; width: 30px; height: 2px; background: var(--node-border); border-radius: 1px; }
         .video-list-resizer:hover { filter: brightness(0.9); }
 
-        .resize-handle { position: absolute; right: 0; bottom: 0; width: 15px; height: 15px; cursor: nwse-resize; pointer-events: auto; }
-        .resize-handle::after { content: ''; position: absolute; right: 4px; bottom: 4px; width: 0; height: 0; border-style: solid; border-width: 0 0 8px 8px; border-color: transparent transparent #888 transparent; }
+        /* 重点修复：大幅调优把手大小、提升 z-index 并确保任何情况下的 Nwse 缩放标志显现 */
+        .resize-handle { 
+            position: absolute; 
+            right: 0; 
+            bottom: 0; 
+            width: 20px; 
+            height: 20px; 
+            cursor: nwse-resize !important; 
+            pointer-events: auto; 
+            z-index: 10;
+        }
+        .resize-handle::after { 
+            content: ''; 
+            position: absolute; 
+            right: 4px; 
+            bottom: 4px; 
+            width: 0; 
+            height: 0; 
+            border-style: solid; 
+            border-width: 0 0 10px 10px; 
+            border-color: transparent transparent #888 transparent; 
+        }
 
         #magnetic-port {
             position: absolute; width: 28px; height: 28px; background: #3b82f6; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 14px; cursor: crosshair; z-index: 500; box-shadow: 0 0 10px rgba(59,130,246,0.8); transform: translate(-50%, -50%); pointer-events: auto;
@@ -223,7 +310,7 @@
         #status-bar b { color: #3b82f6; }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body class="light-mode" oncontextmenu="return false;">
 
 <div id="toolbar">
     <button id="add-node-btn"><i class="fas fa-plus"></i> 新增节点</button>
@@ -245,17 +332,27 @@
     <input type="file" id="directory-input" style="display: none;" webkitdirectory directory multiple>
 
     <div class="toolbar-right">
-        <button id="theme-toggle-btn" class="btn-secondary"><i class="fas fa-sun"></i> 浅色模式</button>
+        <!-- 默认浅色模式下，按钮显示“深色模式” -->
+        <button id="theme-toggle-btn" class="btn-secondary" style="background-color: #374151;"><i class="fas fa-moon"></i> 深色模式</button>
     </div>
 </div>
 
 <div id="workspace-container">
+    <!-- 左侧竖排悬浮工具栏 (1.平移切换 2.网格吸附切换 3.背景网格开关) -->
+    <div id="left-toolbar">
+        <button id="pan-toggle-btn" class="left-btn" title="鼠标左键平移模式 (Mac/无中键用户推荐)"><i class="fas fa-hand-paper"></i></button>
+        <button id="snap-toggle-btn" class="left-btn" title="智能边界磁吸与网格捕捉"><i class="fas fa-th"></i></button>
+        <button id="grid-toggle-btn" class="left-btn active" title="开启/关闭背景点阵网格"><i class="fas fa-border-all"></i></button>
+    </div>
+
     <div id="workspace">
         <!-- 背景层：用于渲染可见连接线 -->
         <svg id="svg-canvas-bg" viewBox="-50000 -50000 100000 100000"></svg>
         <div id="nodes-container"></div>
         <!-- 交互层：放在节点上方（z-index: 2），专门捕获连线点击，保证100%能够选中且极速双击断开 -->
         <svg id="svg-canvas-fg" viewBox="-50000 -50000 100000 100000"></svg>
+        <!-- 智能对齐辅助线绘制层 -->
+        <svg id="svg-guidelines" viewBox="-50000 -50000 100000 100000"></svg>
         <div id="magnetic-port" draggable="false"><i class="fas fa-plus" draggable="false"></i></div>
     </div>
     <div id="selection-box"></div>
@@ -263,8 +360,8 @@
 
 <div id="status-bar">
     <span id="sb-default"><i class="fas fa-mouse"></i> 左键: 框选/拖拽</span>
-    <span id="sb-scissors" style="display:none; color:#ef4444;"><b><i class="fas fa-cut"></i> 剪刀模式: 左键划线切断连线 (松开退出)</b></span>
-    <span><i class="fas fa-mouse-pointer"></i> 中键: 平移画布</span>
+    <span id="sb-scissors" style="display:none; color:#ef4444;"><b><i class="fas fa-cut"></i> 剪刀模式: 左键划线切断连线 (松开左键退出)</b></span>
+    <span><i class="fas fa-mouse-pointer"></i> 中键/手形工具: 平移画布</span>
     <span><i class="fas fa-search"></i> 滚轮: 缩放画布</span>
     <span><i class="fas fa-copy"></i> <b>复制节点:</b> Ctrl+C/V 或 Alt+左键拖拽</span>
 </div>
@@ -358,16 +455,30 @@
     let selectedLineIndices = new Set(); 
     let previewImgScale = 1, previewImgPanX = 0, previewImgPanY = 0;
     let isDraggingPreview = false, previewDragStartX = 0, previewDragStartY = 0, previewStartPanX = 0, previewStartPanY = 0;
-    let isLightMode = false;
+    
+    // --- 【修改：浅色模式默认设为启用状态】 ---
+    let isLightMode = true;
+
+    // --- 【平移与吸附控制变量】 ---
+    let isPanMode = false; 
+    let isGridSnap = false;
+    let isGridVisible = true;
 
     // --- 【复制粘贴系统核心数据存储】 ---
     let copiedNodesClipboard = null; 
-    let altDraggingCopied = false; // 标记本次 Alt 拖拽是否已经生成过复本
+    let altDraggingCopied = false; 
+
+    // --- 【边界自动推移平移控制变量】 ---
+    let edgeScrollSpeedX = 0;
+    let edgeScrollSpeedY = 0;
+    let edgeScrollInterval = null;
+    let lastX = 0, lastY = 0;
 
     const workspaceContainer = document.getElementById('workspace-container');
     const workspace = document.getElementById('workspace');
     const svgBg = document.getElementById('svg-canvas-bg');
     const svgFg = document.getElementById('svg-canvas-fg');
+    const svgGuidelines = document.getElementById('svg-guidelines');
     const nodesContainer = document.getElementById('nodes-container');
     const selectionBox = document.getElementById('selection-box');
     const magneticPort = document.getElementById('magnetic-port');
@@ -409,7 +520,10 @@
             const pathData = generateBezierPath(start, end);
             const isSelectedClass = selectedLineIndices.has(index) ? 'selected-line' : '';
             
+            // 底部渲染
             bgContent += `<path class="connection-line ${isSelectedClass}" d="${pathData}" data-idx="${index}"></path>`;
+            
+            // 顶部交互层：阻止 mousedown 并直通 window.deleteLineByDblClick
             fgContent += `<path class="connection-hitbox" d="${pathData}" data-idx="${index}" onmousedown="event.stopPropagation();" onclick="event.stopPropagation(); window.selectLine(${index}, event);" ondblclick="event.preventDefault(); event.stopPropagation(); window.deleteLineByDblClick(${index});"></path>`;
         });
 
@@ -468,6 +582,7 @@
         return { x: mt2 * mt * p0.x + 3 * mt2 * t * p1.x + 3 * mt * t2 * p2.x + t2 * t * p3.x, y: mt2 * mt * p0.y + 3 * mt2 * t * p1.y + 3 * mt * t2 * p2.y + t2 * t * p3.y };
     }
 
+    // --- 【边界检测碰撞公式：用于剪切和画辅助线】 ---
     function doSegmentsIntersect(p0, p1, p2, p3) {
         let s1_x = p1.x - p0.x, s1_y = p1.y - p0.y, s2_x = p3.x - p2.x, s2_y = p3.y - p2.y;
         let den = (-s2_x * s1_y + s1_x * s2_y); if (den === 0) return false;
@@ -489,6 +604,7 @@
             
             n.images.forEach(img => {
                 const isSelected = selectedMiniImgs.has(img.id);
+                // --- 【双击图片极速预览修复】 ---
                 containerEl.insertAdjacentHTML('beforeend', `
                 <div class="mini-img-wrapper ${isSelected ? 'active-img' : ''}" data-id="${img.id}" style="transform: translate(${img.x}px, ${img.y}px) rotate(${img.rot || 0}deg); z-index: ${img.z || 0}; width: ${img.w}px; height: ${img.h}px;">
                     <div class="mh-rotate-handle mh-rot-tl"></div><div class="mh-rotate-handle mh-rot-tr"></div>
@@ -564,6 +680,13 @@
 
     function createNode(x, y, title = "新场景", content = "", width = 240, height = 200, id = null, themeId = 0, customColor = null, images = [], videos = [], imgCanvasHeight = 120, fontSize = 14, vidListHeight = 100) {
         const nodeId = id || generateId();
+        
+        // --- 【网格吸附与Photoshop智能边界磁吸融合】 ---
+        if (isGridSnap) {
+            x = Math.round(x / 30) * 30;
+            y = Math.round(y / 30) * 30;
+        }
+
         nodes[nodeId] = { x, y, w: width, h: height, title, content, images: images||[], videos: videos||[], imgCanvasHeight, themeId, customColor, fontSize, vidListHeight };
 
         const nodeEl = document.createElement('div'); nodeEl.className = 'node'; nodeEl.id = nodeId;
@@ -759,7 +882,8 @@
                     const cBox = document.getElementById(`c-box-${nodeId}`);
                     if(cBox) {
                         cBox.style.left = canvasSelectionStartX + 'px'; cBox.style.top = canvasSelectionStartY + 'px';
-                        cBox.style.width = '0px'; cBox.style.height = '0px'; cBox.style.display = 'block';
+                        cBox.style.width = '0px'; cBox.style.height = '0px';
+                        cBox.style.display = 'block';
                     }
                     return;
                 }
@@ -818,20 +942,16 @@
         });
     }
 
+    // 平移区域判定
     function isBackgroundEvent(e) { 
         return !e.target.closest('.node') && 
                !e.target.closest('#toolbar') && 
                !e.target.closest('#media-preview-modal') && 
-               !e.target.closest('.connection-hitbox'); 
+               !e.target.closest('.connection-hitbox') &&
+               !e.target.closest('#left-toolbar'); 
     }
 
-    workspaceContainer.addEventListener('contextmenu', (e) => {
-        e.preventDefault(); isScissorsMode = true; document.body.classList.add('scissors-mode');
-        document.getElementById('sb-default').style.display = 'none'; document.getElementById('sb-scissors').style.display = 'inline';
-    });
-
     // --- 【复制与克隆节点的底抽象函数接口】 ---
-    // 能够将当前选中节点列表打包装入虚拟剪贴板，或者实现实时的拖拽克隆
     function performCopySelectedNodes() {
         if (selectedNodes.size === 0) return;
         const clipboard = [];
@@ -851,7 +971,6 @@
                     fontSize: n.fontSize || 14,
                     imgCanvasHeight: n.imgCanvasHeight || 120,
                     vidListHeight: n.vidListHeight || 100,
-                    // 深克隆子媒体，防止数据链错乱
                     images: JSON.parse(JSON.stringify(n.images || [])),
                     videos: JSON.parse(JSON.stringify(n.videos || []))
                 });
@@ -863,15 +982,13 @@
     function performPasteNodes(offsetAmount = 30) {
         if (!copiedNodesClipboard || copiedNodesClipboard.length === 0) return;
         
-        const newIdsMap = {}; // 旧ID到新ID的映射，用以决定复制节点间的内在连接线是否一并复活
+        const newIdsMap = {}; 
         const pastedIds = [];
 
-        // 1. 克隆节点个体
         copiedNodesClipboard.forEach(item => {
             const newId = generateId();
             newIdsMap[item.originalId] = newId;
 
-            // 每一个子图片的 ID 也需要刷新，防止多选混乱
             const pastedImgs = (item.images || []).map(img => {
                 return { ...img, id: generateId() };
             });
@@ -898,7 +1015,6 @@
             pastedIds.push(newId);
         });
 
-        // 2. 一并克隆被框选节点之间的内部连接线（高级设计！）
         connections.forEach(conn => {
             if (newIdsMap[conn.from] && newIdsMap[conn.to]) {
                 connections.push({
@@ -908,24 +1024,257 @@
             }
         });
 
-        // 3. 选中新粘贴出的节点，方便用户直接拖走
         clearSelection();
         pastedIds.forEach(id => selectedNodes.add(id));
         updateSelectionVisuals();
         drawAllLines();
 
-        // 刷新剪贴板节点的原坐标坐标基准，防止原地连贴导致大重合
         copiedNodesClipboard.forEach(item => {
             item.x += offsetAmount;
             item.y += offsetAmount;
         });
     }
 
-    window.addEventListener('mousedown', (e) => {
-        if (e.target.closest('#toolbar') || (!e.target.closest('#color-picker-wrapper') && document.getElementById('color-palette').classList.remove('show'))) return;
+    // --- 【Photoshop 级多维度智能磁吸对齐坐标判定】 ---
+    function getSmartSnapCoords(id, targetX, targetY) {
+        let snapX = null;
+        let snapY = null;
+        const snapThreshold = 15; 
+        const currentW = nodes[id].w;
+        const currentH = nodes[id].h;
 
-        if (isScissorsMode && e.button === 0) { e.preventDefault(); isCutting = true; cutPath = [screenToWorkspace(e.clientX, e.clientY)]; drawCutPath(); return; }
-        if (isScissorsMode) return;
+        const cLeft = targetX;
+        const cRight = targetX + currentW;
+        const cCenterX = targetX + currentW / 2;
+        
+        const cTop = targetY;
+        const cBottom = targetY + currentH;
+        const cCenterY = targetY + currentH / 2;
+
+        let guidelines = []; 
+
+        for (let otherId in nodes) {
+            if (otherId === id || selectedNodes.has(otherId)) continue;
+            const o = nodes[otherId];
+            const oLeft = o.x;
+            const oRight = o.x + o.w;
+            const oCenterX = o.x + o.w / 2;
+            
+            const oTop = o.y;
+            const oBottom = o.y + o.h;
+            const oCenterY = o.y + o.h / 2;
+
+            // 横向对齐判定 (垂直辅助线)
+            if (snapX === null) {
+                if (Math.abs(cLeft - oLeft) < snapThreshold) {
+                    snapX = oLeft;
+                    guidelines.push({ type: 'v', val: oLeft, min: Math.min(cTop, oTop), max: Math.max(cBottom, oBottom) });
+                }
+                else if (Math.abs(cLeft - oRight) < snapThreshold) {
+                    snapX = oRight;
+                    guidelines.push({ type: 'v', val: oRight, min: Math.min(cTop, oTop), max: Math.max(cBottom, oBottom) });
+                }
+                else if (Math.abs(cRight - oLeft) < snapThreshold) {
+                    snapX = oLeft - currentW;
+                    guidelines.push({ type: 'v', val: oLeft, min: Math.min(cTop, oTop), max: Math.max(cBottom, oBottom) });
+                }
+                else if (Math.abs(cRight - oRight) < snapThreshold) {
+                    snapX = oRight - currentW;
+                    guidelines.push({ type: 'v', val: oRight, min: Math.min(cTop, oTop), max: Math.max(cBottom, oBottom) });
+                }
+                else if (Math.abs(cCenterX - oCenterX) < snapThreshold) {
+                    snapX = oCenterX - currentW / 2;
+                    guidelines.push({ type: 'v', val: oCenterX, min: Math.min(cTop, oTop), max: Math.max(cBottom, oBottom) });
+                }
+            }
+
+            // 纵向对齐判定 (水平辅助线)
+            if (snapY === null) {
+                if (Math.abs(cTop - oTop) < snapThreshold) {
+                    snapY = oTop;
+                    guidelines.push({ type: 'h', val: oTop, min: Math.min(cLeft, oLeft), max: Math.max(cRight, oRight) });
+                }
+                else if (Math.abs(cTop - oBottom) < snapThreshold) {
+                    snapY = oBottom;
+                    guidelines.push({ type: 'h', val: oBottom, min: Math.min(cLeft, oLeft), max: Math.max(cRight, oRight) });
+                }
+                else if (Math.abs(cBottom - oTop) < snapThreshold) {
+                    snapY = oTop - currentH;
+                    guidelines.push({ type: 'h', val: oTop, min: Math.min(cLeft, oLeft), max: Math.max(cRight, oRight) });
+                }
+                else if (Math.abs(cBottom - oBottom) < snapThreshold) {
+                    snapY = oBottom - currentH;
+                    guidelines.push({ type: 'h', val: oBottom, min: Math.min(cLeft, oLeft), max: Math.max(cRight, oRight) });
+                }
+                else if (Math.abs(cCenterY - oCenterY) < snapThreshold) {
+                    snapY = oCenterY - currentH / 2;
+                    guidelines.push({ type: 'h', val: oCenterY, min: Math.min(cLeft, oLeft), max: Math.max(cRight, oRight) });
+                }
+            }
+        }
+
+        return {
+            x: snapX !== null ? snapX : targetX,
+            y: snapY !== null ? snapY : targetY,
+            lines: guidelines
+        };
+    }
+
+    // --- 【Photoshop 智能辅助引导线绘制】 ---
+    function drawSnapGuidelines(lines) {
+        if (!lines || lines.length === 0) {
+            svgGuidelines.innerHTML = '';
+            return;
+        }
+        let html = '';
+        lines.forEach(line => {
+            const padding = 80; // 两侧延伸让视觉更顺畅
+            const min = line.min - padding;
+            const max = line.max + padding;
+
+            if (line.type === 'h') {
+                html += `<line x1="${min}" y1="${line.val}" x2="${max}" y2="${line.val}" stroke="#d946ef" stroke-width="1.5" stroke-dasharray="5,5" />`;
+            } else {
+                html += `<line x1="${line.val}" y1="${min}" x2="${line.val}" y2="${max}" stroke="#d946ef" stroke-width="1.5" stroke-dasharray="5,5" />`;
+            }
+        });
+        svgGuidelines.innerHTML = html;
+    }
+
+    function clearSnapGuidelines() {
+        svgGuidelines.innerHTML = '';
+    }
+
+    // --- 【画布边缘检测与全自动推移平移系统】 ---
+    function checkEdgeScroll(clientX, clientY) {
+        const threshold = 50; 
+        const speed = 10; 
+        const rect = workspaceContainer.getBoundingClientRect();
+        
+        edgeScrollSpeedX = 0;
+        edgeScrollSpeedY = 0;
+
+        if (isDraggingNode || isConnecting) {
+            if (clientX < rect.left + threshold) {
+                edgeScrollSpeedX = speed;
+            } else if (clientX > rect.right - threshold) {
+                edgeScrollSpeedX = -speed;
+            }
+
+            if (clientY < rect.top + threshold) {
+                edgeScrollSpeedY = speed;
+            } else if (clientY > rect.bottom - threshold) {
+                edgeScrollSpeedY = -speed;
+            }
+        }
+
+        if (edgeScrollSpeedX !== 0 || edgeScrollSpeedY !== 0) {
+            if (!edgeScrollInterval) {
+                edgeScrollInterval = requestAnimationFrame(updateEdgeScroll);
+            }
+        } else {
+            if (edgeScrollInterval) {
+                cancelAnimationFrame(edgeScrollInterval);
+                edgeScrollInterval = null;
+            }
+        }
+    }
+
+    function updateEdgeScroll() {
+        if (!isDraggingNode && !isConnecting) {
+            edgeScrollInterval = null;
+            clearSnapGuidelines();
+            return;
+        }
+
+        panX += edgeScrollSpeedX;
+        panY += edgeScrollSpeedY;
+        updateWorkspaceTransform();
+        
+        if (isDraggingNode) {
+            dragStartMouseX += edgeScrollSpeedX;
+            dragStartMouseY += edgeScrollSpeedY;
+            // 滚动更新时不附带原生 e
+            triggerNodeDragUpdate(null);
+        }
+        if (isConnecting) {
+            tempLineEnd = screenToWorkspace(lastX, lastY);
+            drawAllLines();
+        }
+
+        edgeScrollInterval = requestAnimationFrame(updateEdgeScroll);
+    }
+
+    // --- 【高阶：重构函数接受原生事件 e，使 Alt 克隆完美捕获】 ---
+    function triggerNodeDragUpdate(e) {
+        const dx = (lastX - dragStartMouseX) / scale, dy = (lastY - dragStartMouseY) / scale;
+        
+        // --- 【按住 Alt 拖动克隆实时生成判定】 ---
+        if (e && e.altKey && !altDraggingCopied) {
+            altDraggingCopied = true;
+            performPasteNodes(0); // 就地克隆
+            
+            // 将拖动初始位置转移给新的复制集
+            draggedNodesInitialPositions = {};
+            selectedNodes.forEach(id => {
+                if (nodes[id]) draggedNodesInitialPositions[id] = { x: nodes[id].x, y: nodes[id].y };
+            });
+        }
+
+        selectedNodes.forEach(id => {
+            if(draggedNodesInitialPositions[id]) {
+                let targetX = draggedNodesInitialPositions[id].x + dx;
+                let targetY = draggedNodesInitialPositions[id].y + dy;
+                
+                if (isGridSnap) {
+                    const snapResult = getSmartSnapCoords(id, targetX, targetY);
+                    targetX = snapResult.x;
+                    targetY = snapResult.y;
+                    drawSnapGuidelines(snapResult.lines);
+                } else {
+                    clearSnapGuidelines();
+                }
+
+                nodes[id].x = targetX; nodes[id].y = targetY;
+                const el = document.getElementById(id); 
+                if (el) {
+                    el.style.left = `${nodes[id].x}px`; el.style.top = `${nodes[id].y}px`;
+                }
+            }
+        });
+        drawAllLines();
+    }
+
+    window.addEventListener('mousedown', (e) => {
+        if (e.target.closest('#toolbar') || e.target.closest('#left-toolbar')) return;
+
+        // --- 【在 Mousedown 强力捕获右键开启剪刀模式】 ---
+        if (e.button === 2) {
+            e.preventDefault();
+            isScissorsMode = !isScissorsMode; 
+            if (isScissorsMode) {
+                document.body.classList.add('scissors-mode');
+                document.getElementById('sb-default').style.display = 'none';
+                document.getElementById('sb-scissors').style.display = 'inline';
+            } else {
+                document.body.classList.remove('scissors-mode');
+                document.getElementById('sb-default').style.display = 'inline';
+                document.getElementById('sb-scissors').style.display = 'none';
+                cutPath = []; drawCutPath();
+            }
+            return;
+        }
+
+        if (e.target.closest('#color-palette') || (!e.target.closest('#color-picker-wrapper') && document.getElementById('color-palette').classList.remove('show'))) return;
+
+        // 剪刀切口开始
+        if (isScissorsMode && e.button === 0) {
+            e.preventDefault();
+            isCutting = true;
+            cutPath = [screenToWorkspace(e.clientX, e.clientY)];
+            drawCutPath();
+            return;
+        }
 
         if (e.target.closest('#magnetic-port')) {
             e.preventDefault(); e.stopPropagation(); setGlobalSelect(true);
@@ -934,7 +1283,16 @@
             drawAllLines(); return;
         }
 
+        // --- 【平移手型拖拽检测】 ---
+        // 只有点在节点外的空白画布上时，才触发布局平移。
         if (isBackgroundEvent(e) && e.button === 0) { 
+            if (isPanMode) {
+                e.preventDefault(); setGlobalSelect(true); isPanning = true;
+                startPanX = e.clientX - panX; startPanY = e.clientY - panY;
+                document.body.classList.add('grabbing');
+                document.body.style.cursor = 'grabbing';
+                return;
+            }
             selectedLineIndices.clear(); drawAllLines(); 
             selectedMiniImgs.clear(); document.querySelectorAll('.mini-img-wrapper').forEach(w => w.classList.remove('active-img')); 
         }
@@ -947,17 +1305,17 @@
 
         const nodeEl = e.target.closest('.node');
         if (nodeEl && e.button === 0 && !e.target.closest('.node-content > *') && !e.target.closest('.node-title') && !e.target.closest('.node-header-actions') && !e.target.closest('.resize-handle')) {
+            // --- 【平移模式融合修复：移除在节点上点击时的 isPanMode 拦截，确保在任何情况下左键都能完美点击、单选及操作节点】 ---
             setGlobalSelect(true); nodesContainer.appendChild(nodeEl);
             
-            // --- 【重点：按住 Alt 克隆机制判定】 ---
+            // Alt 克隆触发
             if (e.altKey) {
-                // 如果没有处于多选，或者点到的节点不在当前选区，则清空选区，只选中当前 Alt 点中的这一个
                 if (!selectedNodes.has(nodeEl.id)) {
                     clearSelection();
                     selectedNodes.add(nodeEl.id);
                 }
-                performCopySelectedNodes(); // 自动打包装入临时克隆剪贴板
-                altDraggingCopied = false;  // 标记尚未克隆出新的节点，等拖动开始再克隆
+                performCopySelectedNodes(); 
+                altDraggingCopied = false;  
             } else {
                 if (!selectedNodes.has(nodeEl.id)) { 
                     if (!e.shiftKey) clearSelection(); 
@@ -981,6 +1339,12 @@
     });
 
     window.addEventListener('mousemove', (e) => {
+        lastX = e.clientX;
+        lastY = e.clientY;
+
+        // 画布边界滚动
+        checkEdgeScroll(e.clientX, e.clientY);
+
         if (isCutting) {
             const mouseWorkspace = screenToWorkspace(e.clientX, e.clientY); cutPath.push(mouseWorkspace); drawCutPath();
             for (let i = connections.length - 1; i >= 0; i--) {
@@ -1113,27 +1477,9 @@
         
         const local = screenToWorkspace(e.clientX, e.clientY);
         if (isDraggingNode) {
-            const dx = (e.clientX - dragStartMouseX) / scale, dy = (e.clientY - dragStartMouseY) / scale;
-            
-            // --- 【重点：Alt拖拽克隆实时触发生效】 ---
-            if (e.altKey && !altDraggingCopied) {
-                altDraggingCopied = true;
-                performPasteNodes(0); // 直接在原地克隆出一份！
-                
-                // 将拖拽的初始位置快照转移到新生成的复本节点上
-                draggedNodesInitialPositions = {};
-                selectedNodes.forEach(id => {
-                    if (nodes[id]) draggedNodesInitialPositions[id] = { x: nodes[id].x, y: nodes[id].y };
-                });
-            }
-
-            selectedNodes.forEach(id => {
-                if(draggedNodesInitialPositions[id]) {
-                    nodes[id].x = draggedNodesInitialPositions[id].x + dx; nodes[id].y = draggedNodesInitialPositions[id].y + dy;
-                    const el = document.getElementById(id); el.style.left = `${nodes[id].x}px`; el.style.top = `${nodes[id].y}px`;
-                }
-            });
-            drawAllLines(); return;
+            // 传入原生事件 e，使 Alt 克隆完美捕获并跟手克隆拖拽
+            triggerNodeDragUpdate(e);
+            return;
         }
         if (isSelecting) {
             const relX = e.clientX - rect.left, relY = e.clientY - rect.top;
@@ -1174,11 +1520,14 @@
         }
     });
 
-    window.addEventListener('mouseup', () => {
+    window.addEventListener('mouseup', (e) => {
+        // --- 【重点修复：右键剪刀模式退出机制，阻止Mac/Tauri误触关闭】 ---
         if (isScissorsMode) {
-            isCutting = false; isScissorsMode = false; document.body.classList.remove('scissors-mode');
-            document.getElementById('sb-default').style.display = 'inline'; document.getElementById('sb-scissors').style.display = 'none';
-            cutPath = []; drawCutPath(); return;
+            if (e.button === 0) {
+                isCutting = false; isScissorsMode = false; document.body.classList.remove('scissors-mode');
+                document.getElementById('sb-default').style.display = 'inline'; document.getElementById('sb-scissors').style.display = 'none';
+                cutPath = []; drawCutPath(); return;
+            }
         }
 
         if (isCanvasSelecting) {
@@ -1187,12 +1536,16 @@
         }
 
         setGlobalSelect(false); isDraggingPreview = false; isDraggingNode = false; isDraggingMiniImg = false; isResizingCanvas = false;
-        altDraggingCopied = false; // 拖拽释放，重置 Alt 克隆锁
+        altDraggingCopied = false; 
+
+        // 清理智能磁吸辅助引导线
+        clearSnapGuidelines();
 
         if (isResizingVidList) isResizingVidList = false;
         if (isResizingMiniImg) isResizingMiniImg = false;
         if (isRotatingMiniImg) isRotatingMiniImg = false;
         document.body.style.cursor = 'default';
+        document.body.classList.remove('grabbing');
         if (isPanning) { isPanning = false; document.body.style.cursor = 'default'; }
         if (isSelecting) { isSelecting = false; selectionBox.style.display = 'none'; }
         
@@ -1363,7 +1716,54 @@
         if (selectedNodes.size > 0) selectedNodes.forEach(id => applyNodeColor(id, null, e.target.value)); 
     });
 
+    // --- 【左侧悬浮按钮事件绑定】 ---
+    const panToggleBtn = document.getElementById('pan-toggle-btn');
+    const snapToggleBtn = document.getElementById('snap-toggle-btn');
+    const gridToggleBtn = document.getElementById('grid-toggle-btn');
+
+    panToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isPanMode = !isPanMode;
+        panToggleBtn.classList.toggle('active', isPanMode);
+        document.body.classList.toggle('pan-cursor-active', isPanMode);
+    });
+
+    snapToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isGridSnap = !isGridSnap;
+        snapToggleBtn.classList.toggle('active', isGridSnap);
+        if (isGridSnap) {
+            Object.keys(nodes).forEach(id => {
+                nodes[id].x = Math.round(nodes[id].x / 30) * 30;
+                nodes[id].y = Math.round(nodes[id].y / 30) * 30;
+                const el = document.getElementById(id);
+                if (el) {
+                    el.style.left = `${nodes[id].x}px`;
+                    el.style.top = `${nodes[id].y}px`;
+                }
+            });
+            drawAllLines();
+        }
+    });
+
+    // --- 【背景网格一键开启/关闭】 ---
+    gridToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isGridVisible = !isGridVisible;
+        gridToggleBtn.classList.toggle('active', isGridVisible);
+        workspaceContainer.classList.toggle('grid-hidden', !isGridVisible);
+    });
+
     updateWorkspaceTransform(); createNode(200, 150, "故事开端", "你从昏迷中醒来...");
+
+    // --- 【初始化浅色/深色默认状态】 ---
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    if (isLightMode) {
+        themeBtn.innerHTML = '<i class="fas fa-moon"></i> 深色模式';
+        themeBtn.style.backgroundColor = '#374151';
+        document.body.classList.add('light-mode');
+        Object.keys(nodes).forEach(id => applyNodeColor(id, nodes[id].themeId, nodes[id].customColor));
+    }
 
 </script>
 </body>
